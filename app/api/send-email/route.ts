@@ -46,40 +46,22 @@ async function redactDocx(buf: Buffer): Promise<Buffer> {
 type TextRect = { page: number; x: number; y: number; width: number; height: number }
 
 async function findSensitiveRects(pdfBuffer: Buffer, pageSizes: { width: number; height: number }[]): Promise<TextRect[]> {
-  // Load pdf-parse as a side-effect: it requires @napi-rs/canvas which sets the real native
-  // DOMMatrix on globalThis. This must happen before pdfjs-dist is dynamically imported.
-  // (On Vercel Linux x64 the @napi-rs/canvas-linux-x64-gnu binary is in package-lock.json
-  //  and will be installed automatically.)
-  if (!globalThis.DOMMatrix) {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('pdf-parse') // side effect: sets globalThis.DOMMatrix via @napi-rs/canvas
-    } catch (e) {
-      console.warn('[redact] pdf-parse require failed, DOMMatrix unavailable:', String(e))
-    }
-  }
-
+  // Use pdf-parse v2's internal pdfjs document (parser.doc) for text extraction.
+  // pdf-parse handles DOMMatrix setup via @napi-rs/canvas and is verified to work on Vercel.
+  // parser.doc is the live pdfjs PDFDocumentProxy — we call getTextContent() directly on each page.
   try {
-    // Dynamic import (not static) guarantees polyfill is in place before pdfjs module initialises
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs') as any
-    // Point to the actual worker file — empty string fails in pdfjs v5
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const workerPath: string = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `file://${workerPath}`
-
-    const loadingTask = pdfjsLib.getDocument({
-      data: new Uint8Array(pdfBuffer),
-      useWorkerFetch: false,
-      isEvalSupported: false,
-      useSystemFonts: true,
-    })
+    const { PDFParse } = require('pdf-parse')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const parser: any = new PDFParse({ data: pdfBuffer })
+    await Promise.race([
+      parser.load(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('pdf-parse load timeout')), 8000)),
+    ])
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfDoc: any = await Promise.race([
-      loadingTask.promise,
-      new Promise((_, rej) => setTimeout(() => rej(new Error('pdfjs load timeout')), 8000)),
-    ])
+    const pdfDoc: any = parser.doc
+    if (!pdfDoc) throw new Error('pdf-parse: parser.doc is null after load()')
 
     const rects: TextRect[] = []
 
@@ -88,31 +70,29 @@ async function findSensitiveRects(pdfBuffer: Buffer, pageSizes: { width: number;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const content: any = await page.getTextContent()
       const pIdx = pageNum - 1
-      const { height: pdfLibH } = pageSizes[pIdx] ?? { width: 595, height: 842 }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       for (const item of (content.items as any[])) {
         const str: string = item.str ?? ''
         if (!str.trim()) continue
 
-        // Check each word too — pdfjs sometimes concatenates spans; split to avoid false negatives
+        // Split on whitespace so "Phone: 9876543210" still matches even if pdfjs merges spans
         const words = str.split(/\s+/)
         const matched = PHONE_RE.test(str) || EMAIL_RE.test(str) ||
           words.some((w: string) => PHONE_RE.test(w) || EMAIL_RE.test(w))
         if (!matched) continue
 
-        // pdfjs transform = [a, b, c, d, tx, ty]; origin bottom-left (same as pdf-lib)
+        // pdfjs transform = [a, b, c, d, tx, ty]; origin bottom-left — same as pdf-lib
         const [, , , d, tx, ty] = item.transform as number[]
         const h = Math.abs(item.height as number) || Math.abs(d) || 12
         const w = Math.abs(item.width as number) || 160
 
-        console.log(`[redact] matched sensitive text on page ${pageNum}, y=${ty.toFixed(1)}, h=${h.toFixed(1)}: "${str.slice(0,30)}"`)
-
+        console.log(`[redact] matched page ${pageNum} y=${ty.toFixed(1)}: "${str.slice(0, 40)}"`)
         rects.push({ page: pIdx, x: tx - 4, y: ty - 4, width: w + 8, height: h + 8 })
       }
     }
 
-    // Sanity-check: clamp rects to page bounds so boxes don't land off-screen
+    // Clamp to page bounds
     const clamped = rects.map(r => {
       const { width: pw, height: ph } = pageSizes[r.page] ?? { width: 595, height: 842 }
       return {
@@ -124,10 +104,10 @@ async function findSensitiveRects(pdfBuffer: Buffer, pageSizes: { width: number;
       }
     })
 
-    console.log(`[redact] pdfjs found ${clamped.length} sensitive rects`)
+    console.log(`[redact] found ${clamped.length} sensitive rects across ${pdfDoc.numPages} pages`)
     return clamped
   } catch (e) {
-    console.error('[redact] pdfjs extraction failed:', String(e))
+    console.error('[redact] pdf-parse extraction failed:', String(e))
     return []
   }
 }
