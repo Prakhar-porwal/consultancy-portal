@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
+
+export const maxDuration = 60 // seconds — needed for PDF processing + SMTP
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
 import JSZip from 'jszip'
 import type { Candidate } from '@/lib/supabase'
@@ -48,7 +50,7 @@ async function findSensitiveRects(pdfBuffer: Buffer, pageSizes: { width: number;
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const PDFParser = require('pdf2json')
 
-  return new Promise((resolve) => {
+  const parsePromise = new Promise<TextRect[]>((resolve) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const parser = new PDFParser(null, 1)
     const rects: TextRect[] = []
@@ -84,6 +86,14 @@ async function findSensitiveRects(pdfBuffer: Buffer, pageSizes: { width: number;
 
     parser.parseBuffer(pdfBuffer)
   })
+
+  // 5-second timeout — if pdf2json hangs, proceed without redaction rather than blocking the email
+  const timeout = new Promise<TextRect[]>(resolve => setTimeout(() => {
+    console.error('[redact] pdf2json timed out')
+    resolve([])
+  }, 5000))
+
+  return Promise.race([parsePromise, timeout])
 }
 
 async function redactResumePdf(pdfBuffer: Buffer): Promise<Buffer> {
