@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import path from 'path'
 import nodemailer from 'nodemailer'
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
 import JSZip from 'jszip'
@@ -47,9 +46,9 @@ type TextRect = { page: number; x: number; y: number; width: number; height: num
 async function findSensitiveRects(pdfBuffer: Buffer): Promise<TextRect[]> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs') as any
 
-  // Use absolute file URL so Node.js can resolve the worker even from a bundled context
-  const workerPath = path.join(process.cwd(), 'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs')
-  pdfjs.GlobalWorkerOptions.workerSrc = `file://${workerPath}`
+  // Empty string disables the browser worker and runs pdfjs in-thread —
+  // required for serverless environments (Vercel Lambda) where worker_threads are restricted
+  pdfjs.GlobalWorkerOptions.workerSrc = ''
 
   const loadingTask = pdfjs.getDocument({ data: new Uint8Array(pdfBuffer), verbosity: 0 })
   const pdfjsDoc = await loadingTask.promise
