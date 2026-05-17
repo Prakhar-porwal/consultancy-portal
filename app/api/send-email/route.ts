@@ -46,11 +46,17 @@ type TextRect = { page: number; x: number; y: number; width: number; height: num
 async function findSensitiveRects(pdfBuffer: Buffer): Promise<TextRect[]> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs') as any
 
-  // Empty string disables the browser worker and runs pdfjs in-thread —
-  // required for serverless environments (Vercel Lambda) where worker_threads are restricted
-  pdfjs.GlobalWorkerOptions.workerSrc = ''
+  // require.resolve uses Node.js module resolution to find the actual installed file path —
+  // more reliable than path.join(process.cwd(), 'node_modules/...') on Vercel
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')
+    pdfjs.GlobalWorkerOptions.workerSrc = `file://${workerPath}`
+  } catch {
+    pdfjs.GlobalWorkerOptions.workerSrc = ''
+  }
 
-  const loadingTask = pdfjs.getDocument({ data: new Uint8Array(pdfBuffer), verbosity: 0 })
+  const loadingTask = pdfjs.getDocument({ data: new Uint8Array(pdfBuffer), verbosity: 0, isEvalSupported: false })
   const pdfjsDoc = await loadingTask.promise
 
   const rects: TextRect[] = []
@@ -82,8 +88,9 @@ async function redactResumePdf(pdfBuffer: Buffer): Promise<Buffer> {
   let rects: TextRect[] = []
   try {
     rects = await findSensitiveRects(pdfBuffer)
+    console.log(`[redact] found ${rects.length} sensitive rects`)
   } catch (e) {
-    console.error('[redact] pdfjs text extraction failed:', e)
+    console.error('[redact] pdfjs text extraction failed:', String(e))
   }
 
   const pdfDoc = await PDFDocument.load(pdfBuffer, { ignoreEncryption: true })
