@@ -1,5 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
+
+// Polyfill DOMMatrix for Node.js < 20 (pdfjs-dist v5 requires it)
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ;(globalThis as any).DOMMatrix = class DOMMatrix {
+    a: number; b: number; c: number; d: number; e: number; f: number
+    constructor(init?: number[]) {
+      this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.e = 0; this.f = 0
+      if (Array.isArray(init) && init.length >= 6) {
+        [this.a, this.b, this.c, this.d, this.e, this.f] = init
+      }
+    }
+    multiply(m: { a: number; b: number; c: number; d: number; e: number; f: number }) {
+      return new (globalThis as any).DOMMatrix([
+        this.a * m.a + this.c * m.b, this.b * m.a + this.d * m.b,
+        this.a * m.c + this.c * m.d, this.b * m.c + this.d * m.d,
+        this.a * m.e + this.c * m.f + this.e, this.b * m.e + this.d * m.f + this.f,
+      ])
+    }
+    transformPoint(p: { x: number; y: number }) {
+      return { x: this.a * p.x + this.c * p.y + this.e, y: this.b * p.x + this.d * p.y + this.f }
+    }
+    inverse() {
+      const det = this.a * this.d - this.b * this.c
+      if (!det) return new (globalThis as any).DOMMatrix()
+      return new (globalThis as any).DOMMatrix([
+        this.d / det, -this.b / det, -this.c / det, this.a / det,
+        (this.c * this.f - this.d * this.e) / det, (this.b * this.e - this.a * this.f) / det,
+      ])
+    }
+  }
+}
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
 import JSZip from 'jszip'
 import type { Candidate } from '@/lib/supabase'
