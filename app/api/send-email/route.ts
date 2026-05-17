@@ -1,37 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
-
-// Polyfill DOMMatrix for Node.js < 20 (pdfjs-dist v5 requires it)
-if (typeof globalThis.DOMMatrix === 'undefined') {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(globalThis as any).DOMMatrix = class DOMMatrix {
-    a: number; b: number; c: number; d: number; e: number; f: number
-    constructor(init?: number[]) {
-      this.a = 1; this.b = 0; this.c = 0; this.d = 1; this.e = 0; this.f = 0
-      if (Array.isArray(init) && init.length >= 6) {
-        [this.a, this.b, this.c, this.d, this.e, this.f] = init
-      }
-    }
-    multiply(m: { a: number; b: number; c: number; d: number; e: number; f: number }) {
-      return new (globalThis as any).DOMMatrix([
-        this.a * m.a + this.c * m.b, this.b * m.a + this.d * m.b,
-        this.a * m.c + this.c * m.d, this.b * m.c + this.d * m.d,
-        this.a * m.e + this.c * m.f + this.e, this.b * m.e + this.d * m.f + this.f,
-      ])
-    }
-    transformPoint(p: { x: number; y: number }) {
-      return { x: this.a * p.x + this.c * p.y + this.e, y: this.b * p.x + this.d * p.y + this.f }
-    }
-    inverse() {
-      const det = this.a * this.d - this.b * this.c
-      if (!det) return new (globalThis as any).DOMMatrix()
-      return new (globalThis as any).DOMMatrix([
-        this.d / det, -this.b / det, -this.c / det, this.a / det,
-        (this.c * this.f - this.d * this.e) / det, (this.b * this.e - this.a * this.f) / det,
-      ])
-    }
-  }
-}
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
 import JSZip from 'jszip'
 import type { Candidate } from '@/lib/supabase'
@@ -75,58 +43,61 @@ async function redactDocx(buf: Buffer): Promise<Buffer> {
 
 type TextRect = { page: number; x: number; y: number; width: number; height: number }
 
-async function findSensitiveRects(pdfBuffer: Buffer): Promise<TextRect[]> {
-  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs') as any
+async function findSensitiveRects(pdfBuffer: Buffer, pageSizes: { width: number; height: number }[]): Promise<TextRect[]> {
+  // pdf2json: pure Node.js PDF parser — no browser DOM dependencies (no DOMMatrix issue)
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const PDFParser = require('pdf2json')
 
-  // require.resolve uses Node.js module resolution to find the actual installed file path —
-  // more reliable than path.join(process.cwd(), 'node_modules/...') on Vercel
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const workerPath = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')
-    pdfjs.GlobalWorkerOptions.workerSrc = `file://${workerPath}`
-  } catch {
-    pdfjs.GlobalWorkerOptions.workerSrc = ''
-  }
+  return new Promise((resolve) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const parser = new PDFParser(null, 1)
+    const rects: TextRect[] = []
 
-  const loadingTask = pdfjs.getDocument({ data: new Uint8Array(pdfBuffer), verbosity: 0, isEvalSupported: false })
-  const pdfjsDoc = await loadingTask.promise
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parser.on('pdfParser_dataError', (err: any) => {
+      console.error('[redact] pdf2json error:', String(err))
+      resolve([])
+    })
 
-  const rects: TextRect[] = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parser.on('pdfParser_dataReady', (data: any) => {
+      ;(data?.Pages ?? []).forEach((page: any, pageIdx: number) => {
+        const pdf2jsonW = page.Width ?? 1
+        const pdf2jsonH = page.Height ?? 1
+        const pdfLibW = pageSizes[pageIdx]?.width ?? 595
+        const pdfLibH = pageSizes[pageIdx]?.height ?? 842
+        const scaleX = pdfLibW / pdf2jsonW
+        const scaleY = pdfLibH / pdf2jsonH
 
-  for (let pageNum = 1; pageNum <= pdfjsDoc.numPages; pageNum++) {
-    const page = await pdfjsDoc.getPage(pageNum)
-    const { items } = await page.getTextContent()
-
-    for (const item of items) {
-      if (!('str' in item) || !item.str.trim()) continue
-      if (!PHONE_RE.test(item.str) && !EMAIL_RE.test(item.str)) continue
-
-      const [, , , d, tx, ty] = item.transform as number[]
-      const h = Math.abs(item.height as number) || Math.abs(d) || 12
-      rects.push({
-        page: pageNum - 1,
-        x: tx - 2,
-        y: ty - 3,
-        width: (item.width as number) + 4 || 120,
-        height: h + 6,
+        ;(page.Texts ?? []).forEach((textItem: any) => {
+          const str = decodeURIComponent(textItem.R?.[0]?.T ?? '')
+          if (!PHONE_RE.test(str) && !EMAIL_RE.test(str)) return
+          const fontSize = textItem.R?.[0]?.TS?.[1] ?? 12
+          const x = textItem.x * scaleX
+          const y = pdfLibH - textItem.y * scaleY - fontSize - 4
+          rects.push({ page: pageIdx, x: x - 2, y, width: textItem.w * scaleX + 8, height: fontSize + 8 })
+        })
       })
-    }
-  }
+      console.log(`[redact] pdf2json found ${rects.length} sensitive rects`)
+      resolve(rects)
+    })
 
-  return rects
+    parser.parseBuffer(pdfBuffer)
+  })
 }
 
 async function redactResumePdf(pdfBuffer: Buffer): Promise<Buffer> {
-  let rects: TextRect[] = []
-  try {
-    rects = await findSensitiveRects(pdfBuffer)
-    console.log(`[redact] found ${rects.length} sensitive rects`)
-  } catch (e) {
-    console.error('[redact] pdfjs text extraction failed:', String(e))
-  }
-
   const pdfDoc = await PDFDocument.load(pdfBuffer, { ignoreEncryption: true })
   const pages = pdfDoc.getPages()
+  const pageSizes = pages.map(p => p.getSize())
+
+  let rects: TextRect[] = []
+  try {
+    rects = await findSensitiveRects(pdfBuffer, pageSizes)
+  } catch (e) {
+    console.error('[redact] pdf2json extraction failed:', String(e))
+  }
+
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
 
