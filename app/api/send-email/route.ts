@@ -102,7 +102,10 @@ async function findSensitiveRects(pdfBuffer: Buffer, pageSizes: { width: number;
     // Dynamic import (not static) guarantees polyfill is in place before pdfjs module initialises
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs') as any
-    pdfjsLib.GlobalWorkerOptions.workerSrc = '' // no worker thread in serverless
+    // Point to the actual worker file — empty string fails in pdfjs v5
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const workerPath: string = require.resolve('pdfjs-dist/legacy/build/pdf.worker.mjs')
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `file://${workerPath}`
 
     const loadingTask = pdfjsLib.getDocument({
       data: new Uint8Array(pdfBuffer),
