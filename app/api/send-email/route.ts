@@ -45,58 +45,19 @@ async function redactDocx(buf: Buffer): Promise<Buffer> {
 
 type TextRect = { page: number; x: number; y: number; width: number; height: number }
 
-// Must run before first dynamic import of pdfjs-dist — pdfjs checks for DOMMatrix at module init time
-function ensureDomPolyfills() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const g = globalThis as any
-  if (g.__rsd_dom_polyfilled) return
-  g.__rsd_dom_polyfilled = true
-
-  if (!g.DOMMatrix) {
-    // Minimal 2-D affine matrix; pdfjs needs it to load but text extraction rarely calls methods
-    class DOMMatrix {
-      a=1;b=0;c=0;d=1;e=0;f=0
-      m11=1;m12=0;m13=0;m14=0
-      m21=0;m22=1;m23=0;m24=0
-      m31=0;m32=0;m33=1;m34=0
-      m41=0;m42=0;m43=0;m44=1
-      is2D=true;isIdentity=true
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      constructor(init?: any) {
-        if (Array.isArray(init) && init.length === 6) {
-          [this.a,this.b,this.c,this.d,this.e,this.f]=init
-          this.m11=init[0];this.m12=init[1];this.m21=init[2];this.m22=init[3]
-          this.m41=init[4];this.m42=init[5]
-        }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      static fromMatrix(m?: any) { return new DOMMatrix(m ? [m.a,m.b,m.c,m.d,m.e,m.f] : undefined) }
-      static fromFloat32Array(a: Float32Array) { return new DOMMatrix(Array.from(a.slice(0,6))) }
-      static fromFloat64Array(a: Float64Array) { return new DOMMatrix(Array.from(a.slice(0,6))) }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      multiply(o?: any) { return new DOMMatrix() }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      scale(..._: any[]) { return new DOMMatrix() }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      translate(..._: any[]) { return new DOMMatrix() }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      rotate(..._: any[]) { return new DOMMatrix() }
-      inverse() { return new DOMMatrix() }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      transformPoint(p?: any) { return { x: p?.x??0, y: p?.y??0, z: 0, w: 1 } }
-      toFloat32Array() { return new Float32Array([this.a,this.b,this.c,this.d,this.e,this.f,0,0,0,0,1,0,0,0,0,1]) }
-      toFloat64Array() { return new Float64Array([this.a,this.b,this.c,this.d,this.e,this.f,0,0,0,0,1,0,0,0,0,1]) }
-      toString() { return `matrix(${this.a},${this.b},${this.c},${this.d},${this.e},${this.f})` }
-    }
-    g.DOMMatrix = DOMMatrix
-  }
-  if (!g.DOMPoint) g.DOMPoint = class { constructor(public x=0,public y=0,public z=0,public w=1){} }
-  if (!g.DOMRect) g.DOMRect = class { constructor(public x=0,public y=0,public width=0,public height=0){} }
-}
-
 async function findSensitiveRects(pdfBuffer: Buffer, pageSizes: { width: number; height: number }[]): Promise<TextRect[]> {
-  // Polyfill must be set before the first dynamic import of pdfjs-dist
-  ensureDomPolyfills()
+  // Load pdf-parse as a side-effect: it requires @napi-rs/canvas which sets the real native
+  // DOMMatrix on globalThis. This must happen before pdfjs-dist is dynamically imported.
+  // (On Vercel Linux x64 the @napi-rs/canvas-linux-x64-gnu binary is in package-lock.json
+  //  and will be installed automatically.)
+  if (!globalThis.DOMMatrix) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('pdf-parse') // side effect: sets globalThis.DOMMatrix via @napi-rs/canvas
+    } catch (e) {
+      console.warn('[redact] pdf-parse require failed, DOMMatrix unavailable:', String(e))
+    }
+  }
 
   try {
     // Dynamic import (not static) guarantees polyfill is in place before pdfjs module initialises
