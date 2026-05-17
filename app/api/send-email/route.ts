@@ -45,55 +45,127 @@ async function redactDocx(buf: Buffer): Promise<Buffer> {
 
 type TextRect = { page: number; x: number; y: number; width: number; height: number }
 
-async function findSensitiveRects(pdfBuffer: Buffer, pageSizes: { width: number; height: number }[]): Promise<TextRect[]> {
-  // pdf2json: pure Node.js PDF parser — no browser DOM dependencies (no DOMMatrix issue)
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const PDFParser = require('pdf2json')
+// Must run before first dynamic import of pdfjs-dist — pdfjs checks for DOMMatrix at module init time
+function ensureDomPolyfills() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const g = globalThis as any
+  if (g.__rsd_dom_polyfilled) return
+  g.__rsd_dom_polyfilled = true
 
-  const parsePromise = new Promise<TextRect[]>((resolve) => {
+  if (!g.DOMMatrix) {
+    // Minimal 2-D affine matrix; pdfjs needs it to load but text extraction rarely calls methods
+    class DOMMatrix {
+      a=1;b=0;c=0;d=1;e=0;f=0
+      m11=1;m12=0;m13=0;m14=0
+      m21=0;m22=1;m23=0;m24=0
+      m31=0;m32=0;m33=1;m34=0
+      m41=0;m42=0;m43=0;m44=1
+      is2D=true;isIdentity=true
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      constructor(init?: any) {
+        if (Array.isArray(init) && init.length === 6) {
+          [this.a,this.b,this.c,this.d,this.e,this.f]=init
+          this.m11=init[0];this.m12=init[1];this.m21=init[2];this.m22=init[3]
+          this.m41=init[4];this.m42=init[5]
+        }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      static fromMatrix(m?: any) { return new DOMMatrix(m ? [m.a,m.b,m.c,m.d,m.e,m.f] : undefined) }
+      static fromFloat32Array(a: Float32Array) { return new DOMMatrix(Array.from(a.slice(0,6))) }
+      static fromFloat64Array(a: Float64Array) { return new DOMMatrix(Array.from(a.slice(0,6))) }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      multiply(o?: any) { return new DOMMatrix() }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      scale(..._: any[]) { return new DOMMatrix() }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      translate(..._: any[]) { return new DOMMatrix() }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      rotate(..._: any[]) { return new DOMMatrix() }
+      inverse() { return new DOMMatrix() }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      transformPoint(p?: any) { return { x: p?.x??0, y: p?.y??0, z: 0, w: 1 } }
+      toFloat32Array() { return new Float32Array([this.a,this.b,this.c,this.d,this.e,this.f,0,0,0,0,1,0,0,0,0,1]) }
+      toFloat64Array() { return new Float64Array([this.a,this.b,this.c,this.d,this.e,this.f,0,0,0,0,1,0,0,0,0,1]) }
+      toString() { return `matrix(${this.a},${this.b},${this.c},${this.d},${this.e},${this.f})` }
+    }
+    g.DOMMatrix = DOMMatrix
+  }
+  if (!g.DOMPoint) g.DOMPoint = class { constructor(public x=0,public y=0,public z=0,public w=1){} }
+  if (!g.DOMRect) g.DOMRect = class { constructor(public x=0,public y=0,public width=0,public height=0){} }
+}
+
+async function findSensitiveRects(pdfBuffer: Buffer, pageSizes: { width: number; height: number }[]): Promise<TextRect[]> {
+  // Polyfill must be set before the first dynamic import of pdfjs-dist
+  ensureDomPolyfills()
+
+  try {
+    // Dynamic import (not static) guarantees polyfill is in place before pdfjs module initialises
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const parser = new PDFParser(null, 1)
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs') as any
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '' // no worker thread in serverless
+
+    const loadingTask = pdfjsLib.getDocument({
+      data: new Uint8Array(pdfBuffer),
+      useWorkerFetch: false,
+      isEvalSupported: false,
+      useSystemFonts: true,
+    })
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pdfDoc: any = await Promise.race([
+      loadingTask.promise,
+      new Promise((_, rej) => setTimeout(() => rej(new Error('pdfjs load timeout')), 8000)),
+    ])
+
     const rects: TextRect[] = []
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    parser.on('pdfParser_dataError', (err: any) => {
-      console.error('[redact] pdf2json error:', String(err))
-      resolve([])
+    for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+      const page = await pdfDoc.getPage(pageNum)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const content: any = await page.getTextContent()
+      const pIdx = pageNum - 1
+      const { height: pdfLibH } = pageSizes[pIdx] ?? { width: 595, height: 842 }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const item of (content.items as any[])) {
+        const str: string = item.str ?? ''
+        if (!str.trim()) continue
+
+        // Check each word too — pdfjs sometimes concatenates spans; split to avoid false negatives
+        const words = str.split(/\s+/)
+        const matched = PHONE_RE.test(str) || EMAIL_RE.test(str) ||
+          words.some((w: string) => PHONE_RE.test(w) || EMAIL_RE.test(w))
+        if (!matched) continue
+
+        // pdfjs transform = [a, b, c, d, tx, ty]; origin bottom-left (same as pdf-lib)
+        const [, , , d, tx, ty] = item.transform as number[]
+        const h = Math.abs(item.height as number) || Math.abs(d) || 12
+        const w = Math.abs(item.width as number) || 160
+
+        console.log(`[redact] matched sensitive text on page ${pageNum}, y=${ty.toFixed(1)}, h=${h.toFixed(1)}: "${str.slice(0,30)}"`)
+
+        rects.push({ page: pIdx, x: tx - 4, y: ty - 4, width: w + 8, height: h + 8 })
+      }
+    }
+
+    // Sanity-check: clamp rects to page bounds so boxes don't land off-screen
+    const clamped = rects.map(r => {
+      const { width: pw, height: ph } = pageSizes[r.page] ?? { width: 595, height: 842 }
+      return {
+        ...r,
+        x: Math.max(0, r.x),
+        y: Math.max(0, r.y),
+        width: Math.min(r.width, pw - Math.max(0, r.x)),
+        height: Math.min(r.height, ph - Math.max(0, r.y)),
+      }
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    parser.on('pdfParser_dataReady', (data: any) => {
-      ;(data?.Pages ?? []).forEach((page: any, pageIdx: number) => {
-        const pdf2jsonW = page.Width ?? 1
-        const pdf2jsonH = page.Height ?? 1
-        const pdfLibW = pageSizes[pageIdx]?.width ?? 595
-        const pdfLibH = pageSizes[pageIdx]?.height ?? 842
-        const scaleX = pdfLibW / pdf2jsonW
-        const scaleY = pdfLibH / pdf2jsonH
-
-        ;(page.Texts ?? []).forEach((textItem: any) => {
-          const str = decodeURIComponent(textItem.R?.[0]?.T ?? '')
-          if (!PHONE_RE.test(str) && !EMAIL_RE.test(str)) return
-          const fontSize = textItem.R?.[0]?.TS?.[1] ?? 12
-          const x = textItem.x * scaleX
-          const y = pdfLibH - textItem.y * scaleY - fontSize - 4
-          rects.push({ page: pageIdx, x: x - 2, y, width: textItem.w * scaleX + 8, height: fontSize + 8 })
-        })
-      })
-      console.log(`[redact] pdf2json found ${rects.length} sensitive rects`)
-      resolve(rects)
-    })
-
-    parser.parseBuffer(pdfBuffer)
-  })
-
-  // 5-second timeout — if pdf2json hangs, proceed without redaction rather than blocking the email
-  const timeout = new Promise<TextRect[]>(resolve => setTimeout(() => {
-    console.error('[redact] pdf2json timed out')
-    resolve([])
-  }, 5000))
-
-  return Promise.race([parsePromise, timeout])
+    console.log(`[redact] pdfjs found ${clamped.length} sensitive rects`)
+    return clamped
+  } catch (e) {
+    console.error('[redact] pdfjs extraction failed:', String(e))
+    return []
+  }
 }
 
 async function redactResumePdf(pdfBuffer: Buffer): Promise<Buffer> {
