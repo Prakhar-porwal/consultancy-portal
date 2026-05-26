@@ -51,6 +51,15 @@ export type Client = {
   created_at: string
 }
 
+export type EmailLog = {
+  id: string
+  sent_at: string
+  to_email: string
+  to_name: string
+  subject: string | null
+  candidates: { id: string; name: string }[]
+}
+
 export type Job = {
   id: string
   title: string

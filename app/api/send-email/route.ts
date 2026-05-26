@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
+import { createClient } from '@supabase/supabase-js'
 
 export const maxDuration = 60 // seconds — needed for PDF processing + SMTP
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
@@ -358,6 +359,20 @@ export async function POST(req: NextRequest) {
       html: buildHtml(candidates, toName, customNote),
       attachments,
     })
+
+    // log the send — fire and forget, don't fail the request if logging fails
+    try {
+      const admin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      )
+      await admin.from('email_logs').insert({
+        to_email: toEmail,
+        to_name: toName,
+        subject,
+        candidates: candidates.map(c => ({ id: c.id, name: c.full_name })),
+      })
+    } catch { /* ignore logging errors */ }
 
     return NextResponse.json({ success: true })
   } catch (err) {

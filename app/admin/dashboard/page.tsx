@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase, type Candidate, type Client, type Job } from '@/lib/supabase'
+import { supabase, type Candidate, type Client, type Job, type EmailLog } from '@/lib/supabase'
 
 const STATUS_COLORS: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700',
@@ -32,7 +32,7 @@ const INITIAL_JOB = {
 
 export default function AdminDashboard() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'candidates' | 'jobs' | 'clients'>('candidates')
+  const [activeTab, setActiveTab] = useState<'candidates' | 'jobs' | 'clients' | 'logs'>('candidates')
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,6 +59,10 @@ export default function AdminDashboard() {
   const [jdFile, setJdFile] = useState<File | null>(null)
   const [jobSaving, setJobSaving] = useState(false)
   const [jobError, setJobError] = useState('')
+
+  // logs
+  const [logs, setLogs] = useState<EmailLog[]>([])
+  const [logsLoading, setLogsLoading] = useState(false)
 
   // clients management
   const [showClientModal, setShowClientModal] = useState(false)
@@ -105,9 +109,18 @@ export default function AdminDashboard() {
     fetchData()
   }, [checkAuth, fetchData])
 
+  const fetchLogs = useCallback(async () => {
+    setLogsLoading(true)
+    const res = await fetch('/api/logs')
+    const data = await res.json()
+    setLogs(Array.isArray(data) ? data : [])
+    setLogsLoading(false)
+  }, [])
+
   useEffect(() => {
     if (activeTab === 'jobs') fetchJobs()
-  }, [activeTab, fetchJobs])
+    if (activeTab === 'logs') fetchLogs()
+  }, [activeTab, fetchJobs, fetchLogs])
 
   function openNewJob() {
     setEditingJob(null)
@@ -207,25 +220,30 @@ export default function AdminDashboard() {
     if (!clientName.trim()) { setClientError('Client name is required.'); return }
     setClientSaving(true)
     setClientError('')
-    let dbError
+    const res = await fetch('/api/clients', {
+      method: editingClient ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editingClient ? { id: editingClient.id, name: clientName } : { name: clientName }),
+    })
+    const data = await res.json()
+    if (!res.ok) { setClientError(data.error ?? 'Failed to save.'); setClientSaving(false); return }
     if (editingClient) {
-      const { error } = await supabase.from('clients').update({ name: clientName.trim() }).eq('id', editingClient.id)
-      dbError = error
+      setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, name: clientName.trim() } : c))
     } else {
-      const { error } = await supabase.from('clients').insert({ name: clientName.trim() })
-      dbError = error
+      setClients(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)))
     }
-    if (dbError) { setClientError(dbError.message); setClientSaving(false); return }
-    const { data } = await supabase.from('clients').select('*').order('name')
-    setClients(data ?? [])
     setShowClientModal(false)
     setClientSaving(false)
   }
 
   async function deleteClient(id: string, name: string) {
     if (!confirm(`Delete client "${name}"? Candidates assigned to them will become unassigned.`)) return
-    await supabase.from('candidates').update({ client_id: null }).eq('client_id', id)
-    await supabase.from('clients').delete().eq('id', id)
+    const res = await fetch('/api/clients', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    if (!res.ok) return
     setClients(prev => prev.filter(c => c.id !== id))
     setCandidates(prev => prev.map(c => c.client_id === id ? { ...c, client_id: null } : c))
   }
@@ -387,6 +405,12 @@ export default function AdminDashboard() {
                 </span>
               )}
             </button>
+            <button
+              onClick={() => setActiveTab('logs')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'logs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Logs
+            </button>
           </div>
         </div>
         <button onClick={handleSignOut} className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
@@ -489,6 +513,130 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── LOGS TAB ── */}
+        {activeTab === 'logs' && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Email Logs</h2>
+                <p className="text-sm text-gray-500 mt-0.5">History of candidate CVs sent to clients</p>
+              </div>
+              {logs.length > 0 && (
+                <button
+                  onClick={() => {
+                    const headers = ['Date', 'Time', 'Sent To', 'Email', 'Candidates', 'Assigned Client', 'Subject']
+                    const rows = logs.map(log => {
+                      const candidateNames = log.candidates.map(c => c.name).join('; ')
+                      const assignedClients = log.candidates.map(c => {
+                        const cand = candidates.find(x => x.id === c.id)
+                        return cand?.client_id ? (clients.find(cl => cl.id === cand.client_id)?.name ?? '') : ''
+                      }).filter(Boolean).join('; ')
+                      return [
+                        new Date(log.sent_at).toLocaleDateString('en-IN'),
+                        new Date(log.sent_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+                        log.to_name,
+                        log.to_email,
+                        candidateNames,
+                        assignedClients || 'Unassigned',
+                        log.subject ?? '',
+                      ]
+                    })
+                    const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+                    const blob = new Blob([csv], { type: 'text/csv' })
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = `email-logs-${new Date().toISOString().slice(0, 10)}.csv`
+                    a.click()
+                    URL.revokeObjectURL(url)
+                  }}
+                  className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download CSV
+                </button>
+              )}
+            </div>
+
+            {logsLoading ? (
+              <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center text-gray-400">Loading logs...</div>
+            ) : logs.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                <p className="text-gray-500 font-medium">No emails sent yet</p>
+                <p className="text-gray-400 text-sm mt-1">Logs will appear here after you send candidate profiles to a client.</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        {['Date & Time', 'Sent To', 'Candidates', 'Assigned Client', 'Subject'].map(h => (
+                          <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {logs.map(log => {
+                        const assignedClients = [...new Set(
+                          log.candidates
+                            .map(c => candidates.find(x => x.id === c.id)?.client_id)
+                            .filter(Boolean)
+                            .map(cid => clients.find(cl => cl.id === cid)?.name)
+                            .filter(Boolean)
+                        )] as string[]
+
+                        return (
+                          <tr key={log.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
+                              <div className="font-medium text-gray-700">{new Date(log.sent_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                              <div className="text-gray-400">{new Date(log.sent_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="font-medium text-gray-800">{log.to_name}</div>
+                              <div className="text-xs text-gray-400">{log.to_email}</div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex flex-wrap gap-1">
+                                {log.candidates.map(c => (
+                                  <span key={c.id} className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap">
+                                    {c.name}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              {assignedClients.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {assignedClients.map(name => (
+                                    <span key={name} className="bg-green-50 text-green-700 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap">
+                                      {name}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-300">Unassigned</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-gray-500 max-w-[200px]">
+                              <div className="truncate text-xs" title={log.subject ?? ''}>{log.subject ?? '—'}</div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="px-4 py-3 border-t border-gray-100 text-xs text-gray-400">
+                  {logs.length} email{logs.length !== 1 ? 's' : ''} sent
+                </div>
               </div>
             )}
           </div>
