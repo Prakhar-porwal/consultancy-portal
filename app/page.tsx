@@ -77,10 +77,17 @@ const SKILL_GROUPS = [
   },
 ]
 
+const EDUCATION_OPTIONS = ['Graduation (B.E. / B.Tech / B.Sc / B.Com / etc.)', 'Diploma', 'Post Graduation (M.E. / M.Tech / MBA / etc.)', 'Other']
+
 type FormData = {
   full_name: string
   email: string
   phone: string
+  alt_phone: string
+  linkedin_url: string
+  ready_to_relocate: string
+  education_type: string
+  education_institution: string
   current_company: string
   current_ctc: string
   expected_ctc: string
@@ -96,6 +103,11 @@ const INITIAL: FormData = {
   full_name: '',
   email: '',
   phone: '',
+  alt_phone: '',
+  linkedin_url: '',
+  ready_to_relocate: '',
+  education_type: '',
+  education_institution: '',
   current_company: '',
   current_ctc: '',
   expected_ctc: '',
@@ -132,6 +144,29 @@ function validate(form: FormData, resumeFile: File | null): FieldErrors {
     if (!/^[6-9]\d{9}$/.test(digits)) {
       e.phone = 'Enter a valid 10-digit Indian mobile number (starts with 6–9).'
     }
+  }
+
+  if (form.alt_phone.trim()) {
+    const digits = form.alt_phone.replace(/[\s\-()]/g, '').replace(/^\+91/, '')
+    if (!/^[6-9]\d{9}$/.test(digits)) {
+      e.alt_phone = 'Enter a valid 10-digit Indian mobile number.'
+    }
+  }
+
+  if (form.linkedin_url.trim() && !/^https?:\/\/(www\.)?linkedin\.com\//.test(form.linkedin_url.trim())) {
+    e.linkedin_url = 'Enter a valid LinkedIn URL (e.g. https://linkedin.com/in/yourname).'
+  }
+
+  if (!form.ready_to_relocate) {
+    e.ready_to_relocate = 'Please select an option.'
+  }
+
+  if (!form.education_type) {
+    e.education_type = 'Please select your education.'
+  }
+
+  if (!form.education_institution.trim()) {
+    e.education_institution = 'Please enter your college / university / institution name.'
   }
 
   if (!form.current_location.trim()) {
@@ -251,6 +286,9 @@ export default function CandidateForm() {
         ...form,
         current_ctc: parseFloat(form.current_ctc),
         expected_ctc: parseFloat(form.expected_ctc),
+        ready_to_relocate: form.ready_to_relocate === 'yes',
+        alt_phone: form.alt_phone.trim() || null,
+        linkedin_url: form.linkedin_url.trim() || null,
         resume_url,
         status: 'new',
       })
@@ -338,10 +376,37 @@ export default function CandidateForm() {
               <input name="phone" value={form.phone} onChange={handleChange} onBlur={handleBlur}
                 placeholder="+91 9876543210" maxLength={13} className={ic(errors.phone)} />
             </Field>
+            <Field label="Alternative Phone" error={errors.alt_phone}>
+              <input name="alt_phone" value={form.alt_phone} onChange={handleChange} onBlur={handleBlur}
+                placeholder="+91 9876543210 (optional)" maxLength={13} className={ic(errors.alt_phone)} />
+            </Field>
+            <Field label="LinkedIn Profile URL" error={errors.linkedin_url}>
+              <input name="linkedin_url" value={form.linkedin_url} onChange={handleChange} onBlur={handleBlur}
+                placeholder="https://linkedin.com/in/yourname" className={ic(errors.linkedin_url)} />
+            </Field>
             <Field label="Current Company">
               <input name="current_company" value={form.current_company} onChange={handleChange} onBlur={handleBlur}
                 placeholder="Infosys, TCS, etc." className={ic()} />
             </Field>
+            <Field label="Ready to Relocate *" error={errors.ready_to_relocate}>
+              <select name="ready_to_relocate" value={form.ready_to_relocate} onChange={handleChange} onBlur={handleBlur} className={ic(errors.ready_to_relocate)}>
+                <option value="">Select option</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </Field>
+            <Field label="Education *" error={errors.education_type}>
+              <select name="education_type" value={form.education_type} onChange={handleChange} onBlur={handleBlur} className={ic(errors.education_type)}>
+                <option value="">Select education</option>
+                {EDUCATION_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="College / University / Institution *" error={errors.education_institution}>
+                <input name="education_institution" value={form.education_institution} onChange={handleChange} onBlur={handleBlur}
+                  placeholder="e.g. IIT Bombay, VJTI, Government Polytechnic" className={ic(errors.education_institution)} />
+              </Field>
+            </div>
             <Field label="Current Location *" error={errors.current_location}>
               <input name="current_location" value={form.current_location} onChange={handleChange} onBlur={handleBlur}
                 placeholder="Mumbai, Maharashtra" className={ic(errors.current_location)} />

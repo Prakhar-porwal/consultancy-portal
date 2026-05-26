@@ -25,6 +25,11 @@ export type Candidate = {
   full_name: string
   email: string
   phone: string
+  alt_phone: string | null
+  linkedin_url: string | null
+  ready_to_relocate: boolean
+  education_type: string | null
+  education_institution: string | null
   current_company: string
   current_ctc: number
   expected_ctc: number

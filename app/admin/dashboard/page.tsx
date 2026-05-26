@@ -931,11 +931,15 @@ export default function AdminDashboard() {
               {[
                 { label: 'Email', value: selectedCandidate.email },
                 { label: 'Phone', value: selectedCandidate.phone },
+                ...(selectedCandidate.alt_phone ? [{ label: 'Alt Phone', value: selectedCandidate.alt_phone }] : []),
                 { label: 'Experience', value: selectedCandidate.total_experience },
                 { label: 'Current CTC', value: `${selectedCandidate.current_ctc} LPA` },
                 { label: 'Expected CTC', value: `${selectedCandidate.expected_ctc} LPA` },
                 { label: 'Notice Period', value: selectedCandidate.notice_period },
                 { label: 'Immediate Joiner', value: selectedCandidate.is_immediate_joiner ? 'Yes' : 'No' },
+                { label: 'Ready to Relocate', value: selectedCandidate.ready_to_relocate ? 'Yes' : 'No' },
+                { label: 'Education', value: selectedCandidate.education_type || 'Not specified' },
+                { label: 'Institution', value: selectedCandidate.education_institution || 'Not specified' },
                 { label: 'Current Location', value: selectedCandidate.current_location },
                 { label: 'Preferred Location', value: selectedCandidate.preferred_location || 'Not specified' },
               ].map(({ label, value }) => (
@@ -944,6 +948,19 @@ export default function AdminDashboard() {
                   <span className="font-medium text-gray-800 text-right max-w-[200px]">{value}</span>
                 </div>
               ))}
+              {selectedCandidate.linkedin_url && (
+                <div className="flex justify-between py-2 border-b border-gray-100 text-sm">
+                  <span className="text-gray-500">LinkedIn</span>
+                  <a
+                    href={selectedCandidate.linkedin_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 font-medium text-right max-w-[200px] truncate"
+                  >
+                    View Profile
+                  </a>
+                </div>
+              )}
 
               <div className="py-2 border-b border-gray-100">
                 <p className="text-sm text-gray-500 mb-1">Skills</p>
