@@ -32,7 +32,7 @@ const INITIAL_JOB = {
 
 export default function AdminDashboard() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'candidates' | 'jobs'>('candidates')
+  const [activeTab, setActiveTab] = useState<'candidates' | 'jobs' | 'clients'>('candidates')
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,6 +59,13 @@ export default function AdminDashboard() {
   const [jdFile, setJdFile] = useState<File | null>(null)
   const [jobSaving, setJobSaving] = useState(false)
   const [jobError, setJobError] = useState('')
+
+  // clients management
+  const [showClientModal, setShowClientModal] = useState(false)
+  const [editingClient, setEditingClient] = useState<Client | null>(null)
+  const [clientName, setClientName] = useState('')
+  const [clientSaving, setClientSaving] = useState(false)
+  const [clientError, setClientError] = useState('')
 
   // applications
   const [applications, setApplications] = useState<{ candidate_email: string; job_id: string }[]>([])
@@ -180,6 +187,47 @@ export default function AdminDashboard() {
     if (!confirm('Delete this job posting?')) return
     await supabase.from('jobs').delete().eq('id', id)
     setJobs(prev => prev.filter(j => j.id !== id))
+  }
+
+  function openNewClient() {
+    setEditingClient(null)
+    setClientName('')
+    setClientError('')
+    setShowClientModal(true)
+  }
+
+  function openEditClient(client: Client) {
+    setEditingClient(client)
+    setClientName(client.name)
+    setClientError('')
+    setShowClientModal(true)
+  }
+
+  async function saveClient() {
+    if (!clientName.trim()) { setClientError('Client name is required.'); return }
+    setClientSaving(true)
+    setClientError('')
+    let dbError
+    if (editingClient) {
+      const { error } = await supabase.from('clients').update({ name: clientName.trim() }).eq('id', editingClient.id)
+      dbError = error
+    } else {
+      const { error } = await supabase.from('clients').insert({ name: clientName.trim() })
+      dbError = error
+    }
+    if (dbError) { setClientError(dbError.message); setClientSaving(false); return }
+    const { data } = await supabase.from('clients').select('*').order('name')
+    setClients(data ?? [])
+    setShowClientModal(false)
+    setClientSaving(false)
+  }
+
+  async function deleteClient(id: string, name: string) {
+    if (!confirm(`Delete client "${name}"? Candidates assigned to them will become unassigned.`)) return
+    await supabase.from('candidates').update({ client_id: null }).eq('client_id', id)
+    await supabase.from('clients').delete().eq('id', id)
+    setClients(prev => prev.filter(c => c.id !== id))
+    setCandidates(prev => prev.map(c => c.client_id === id ? { ...c, client_id: null } : c))
   }
 
   async function handleSignOut() {
@@ -328,6 +376,17 @@ export default function AdminDashboard() {
                 </span>
               )}
             </button>
+            <button
+              onClick={() => setActiveTab('clients')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'clients' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Clients
+              {clients.length > 0 && (
+                <span className="ml-1.5 bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">
+                  {clients.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
         <button onClick={handleSignOut} className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
@@ -430,6 +489,78 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── CLIENTS TAB ── */}
+        {activeTab === 'clients' && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Clients</h2>
+                <p className="text-sm text-gray-500 mt-0.5">{clients.length} client{clients.length !== 1 ? 's' : ''}</p>
+              </div>
+              <button
+                onClick={openNewClient}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Client
+              </button>
+            </div>
+
+            {clients.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
+                <p className="text-gray-500 font-medium">No clients yet</p>
+                <p className="text-gray-400 text-sm mt-1">Click &quot;Add Client&quot; to create your first client.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {clients.map(client => {
+                  const assigned = candidates.filter(c => c.client_id === client.id)
+                  return (
+                    <div key={client.id} className="bg-white rounded-2xl border border-gray-200 p-5 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-700 font-bold text-base shrink-0">
+                          {client.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-900 truncate">{client.name}</p>
+                          <p className="text-sm text-gray-400 mt-0.5">
+                            {assigned.length} candidate{assigned.length !== 1 ? 's' : ''} assigned
+                            {assigned.length > 0 && (
+                              <span className="ml-2 text-gray-300">·</span>
+                            )}
+                            {assigned.length > 0 && (
+                              <span className="ml-2 text-xs text-gray-400">{assigned.map(c => c.full_name).slice(0, 3).join(', ')}{assigned.length > 3 ? ` +${assigned.length - 3} more` : ''}</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs text-gray-400">
+                          Added {new Date(client.created_at).toLocaleDateString('en-IN')}
+                        </span>
+                        <button
+                          onClick={() => openEditClient(client)}
+                          className="text-xs px-3 py-1.5 rounded-lg font-medium border border-blue-200 text-blue-700 hover:bg-blue-50 transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteClient(client.id, client.name)}
+                          className="text-xs px-3 py-1.5 rounded-lg font-medium border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -612,6 +743,53 @@ export default function AdminDashboard() {
         </div>
         </>}
       </div>
+
+      {/* Client modal */}
+      {showClientModal && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setShowClientModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">{editingClient ? 'Edit Client' : 'Add New Client'}</h2>
+              <button onClick={() => setShowClientModal(false)} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Client Name *</label>
+                <input
+                  value={clientName}
+                  onChange={e => setClientName(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && saveClient()}
+                  placeholder="e.g. Tata Projects, L&T, etc."
+                  autoFocus
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              {clientError && (
+                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{clientError}</p>
+              )}
+            </div>
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                onClick={() => setShowClientModal(false)}
+                className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveClient}
+                disabled={clientSaving}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white py-2.5 rounded-lg text-sm font-semibold transition-colors"
+              >
+                {clientSaving ? 'Saving...' : editingClient ? 'Save Changes' : 'Add Client'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Job modal */}
       {showJobModal && (
