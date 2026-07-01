@@ -140,8 +140,8 @@ export default function HirePage() {
           </p>
           <div className="mt-8 pt-6 border-t border-gray-100 space-y-3">
             <p className="text-xs text-gray-400">For urgent requirements, contact us directly:</p>
-            <a href="mailto:prakhar@rsd.org.in" className="text-sm font-medium text-blue-600 block hover:underline">
-              prakhar@rsd.org.in
+            <a href="mailto:support@matchwork.in" className="text-sm font-medium text-blue-600 block hover:underline">
+              support@matchwork.in
             </a>
             <Link
               href="/"
@@ -161,7 +161,7 @@ export default function HirePage() {
       <div className="max-w-2xl mx-auto mb-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">R</span>
+            <span className="text-white font-bold text-sm">M</span>
           </div>
           <span className="font-semibold text-gray-800">matchwork</span>
         </Link>

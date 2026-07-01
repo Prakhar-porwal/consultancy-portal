@@ -73,7 +73,7 @@ export default function CandidateJobs() {
       <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">R</span>
+            <span className="text-white font-bold text-sm">M</span>
           </div>
           <span className="font-semibold text-gray-900">matchwork</span>
           <span className="text-gray-400 text-sm ml-1">/ Jobs</span>
@@ -195,7 +195,7 @@ export default function CandidateJobs() {
                       )}
                       <p className="text-xs text-gray-400 text-center">
                         Questions? Email us at{' '}
-                        <a href="mailto:prakhar@rsd.org.in" className="text-blue-500 underline">prakhar@rsd.org.in</a>
+                        <a href="mailto:support@matchwork.in" className="text-blue-500 underline">support@matchwork.in</a>
                       </p>
                     </div>
                   </div>

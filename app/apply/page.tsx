@@ -257,7 +257,7 @@ export default function CandidateForm() {
               View Available Jobs
             </Link>
             <p className="text-xs text-gray-400">For queries, contact us at</p>
-            <p className="text-sm font-medium text-blue-600">prakhar@rsd.org.in</p>
+            <p className="text-sm font-medium text-blue-600">support@matchwork.in</p>
           </div>
         </div>
       </main>
@@ -269,7 +269,7 @@ export default function CandidateForm() {
       <div className="max-w-2xl mx-auto mb-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">R</span>
+            <span className="text-white font-bold text-sm">M</span>
           </div>
           <span className="font-semibold text-gray-800">matchwork</span>
         </Link>

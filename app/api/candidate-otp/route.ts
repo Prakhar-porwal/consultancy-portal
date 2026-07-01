@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
           <p style="font-size:13px;color:#6b7280;margin:16px 0 0;">This code expires in <strong>10 minutes</strong>. Do not share it with anyone.</p>
           <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb;">
             <p style="font-size:13px;color:#6b7280;margin:0;">Need help? Contact us:</p>
-            <p style="font-size:13px;color:#111827;margin:4px 0 0;">📞 <a href="tel:+919667710275" style="color:#1d4ed8;text-decoration:none;font-weight:600;">+91 96677 10275</a> &nbsp;|&nbsp; ✉️ <a href="mailto:prakhar@rsd.org.in" style="color:#1d4ed8;text-decoration:none;font-weight:600;">prakhar@rsd.org.in</a></p>
+            <p style="font-size:13px;color:#111827;margin:4px 0 0;">📞 <a href="tel:+919667710275" style="color:#1d4ed8;text-decoration:none;font-weight:600;">+91 96677 10275</a> &nbsp;|&nbsp; ✉️ <a href="mailto:support@matchwork.in" style="color:#1d4ed8;text-decoration:none;font-weight:600;">support@matchwork.in</a></p>
           </div>
         </div>
       </div>

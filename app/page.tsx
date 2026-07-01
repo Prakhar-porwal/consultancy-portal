@@ -8,7 +8,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow">
-              <span className="text-white font-bold text-base">R</span>
+              <span className="text-white font-bold text-base">M</span>
             </div>
             <div>
               <span className="font-bold text-gray-900 text-lg leading-none">matchwork</span>
@@ -277,7 +277,7 @@ export default function Home() {
                 </svg>
               </div>
               <div className="font-semibold text-gray-900 text-sm mb-1">Email</div>
-              <a href="mailto:prakhar@rsd.org.in" className="text-blue-600 text-sm hover:underline">prakhar@rsd.org.in</a>
+              <a href="mailto:support@matchwork.in" className="text-blue-600 text-sm hover:underline">support@matchwork.in</a>
             </div>
             <div className="bg-gray-50 rounded-2xl p-6">
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -286,7 +286,7 @@ export default function Home() {
                 </svg>
               </div>
               <div className="font-semibold text-gray-900 text-sm mb-1">Phone / WhatsApp</div>
-              <a href="tel:+919876543210" className="text-blue-600 text-sm hover:underline">+91 98765 43210</a>
+              <a href="tel:+919667710275" className="text-blue-600 text-sm hover:underline">+91 96677 10275</a>
             </div>
             <div className="bg-gray-50 rounded-2xl p-6">
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -307,7 +307,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">R</span>
+              <span className="text-white font-bold text-sm">M</span>
             </div>
             <span className="text-white font-semibold">matchwork</span>
           </div>

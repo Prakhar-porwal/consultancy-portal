@@ -238,7 +238,7 @@ function buildHtml(candidates: Candidate[], clientName: string, customNote: stri
 
         <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6;background:#fefce8;border-radius:0 0 8px 8px;padding:10px 14px;">
           <span style="font-size:12px;color:#92400e;">
-            📞 To schedule an interview or get contact details, please reach out to <strong>matchwork</strong> at <a href="mailto:prakhar@rsd.org.in" style="color:#1d4ed8;">prakhar@rsd.org.in</a>
+            📞 To schedule an interview or get contact details, please reach out to <strong>matchwork</strong> at <a href="mailto:support@matchwork.in" style="color:#1d4ed8;">support@matchwork.in</a>
           </span>
         </div>
       </div>
@@ -287,7 +287,7 @@ function buildHtml(candidates: Candidate[], clientName: string, customNote: stri
             <div style="margin-top:28px;padding-top:20px;border-top:1px solid #e5e7eb;">
               <p style="font-size:14px;color:#4b5563;margin:0 0 6px;">Please feel free to reach out for any further information or to schedule interviews.</p>
               <p style="font-size:14px;color:#111827;font-weight:600;margin:0;">Warm regards,<br>matchwork Team</p>
-              <p style="font-size:13px;color:#9ca3af;margin:4px 0 0;">prakhar@rsd.org.in</p>
+              <p style="font-size:13px;color:#9ca3af;margin:4px 0 0;">support@matchwork.in</p>
             </div>
 
           </td>
