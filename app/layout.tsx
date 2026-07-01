@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RSD Consultancy",
-  description: "Submit your profile to explore exciting job opportunities with RSD Consultancy",
+  title: "matchwork",
+  description: "Submit your profile to explore exciting job opportunities with matchwork",
 };
 
 export default function RootLayout({

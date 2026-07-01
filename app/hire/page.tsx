@@ -163,7 +163,7 @@ export default function HirePage() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">R</span>
           </div>
-          <span className="font-semibold text-gray-800">RSD Consultancy</span>
+          <span className="font-semibold text-gray-800">matchwork</span>
         </Link>
         <Link
           href="/apply"

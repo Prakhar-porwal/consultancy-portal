@@ -244,7 +244,7 @@ export default function CandidateForm() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-3">Thank You!</h2>
           <p className="text-gray-500 leading-relaxed mb-2">
-            Your application has been successfully submitted to <span className="font-semibold text-gray-700">RSD Consultancy</span>.
+            Your application has been successfully submitted to <span className="font-semibold text-gray-700">matchwork</span>.
           </p>
           <p className="text-gray-400 text-sm leading-relaxed">
             Our team will carefully review your profile and reach out to you shortly if there is a suitable opportunity.
@@ -271,7 +271,7 @@ export default function CandidateForm() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">R</span>
           </div>
-          <span className="font-semibold text-gray-800">RSD Consultancy</span>
+          <span className="font-semibold text-gray-800">matchwork</span>
         </Link>
         <Link
           href="/candidate/login"
@@ -286,7 +286,7 @@ export default function CandidateForm() {
 
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Join RSD Consultancy</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Join matchwork</h1>
           <p className="text-gray-500 mt-1">Submit your profile to explore exciting opportunities</p>
         </div>
 

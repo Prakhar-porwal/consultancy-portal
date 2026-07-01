@@ -11,7 +11,7 @@ export default function Home() {
               <span className="text-white font-bold text-base">R</span>
             </div>
             <div>
-              <span className="font-bold text-gray-900 text-lg leading-none">RSD Consultancy</span>
+              <span className="font-bold text-gray-900 text-lg leading-none">matchwork</span>
               <p className="text-xs text-gray-400 leading-none mt-0.5">Recruitment &amp; Staffing</p>
             </div>
           </div>
@@ -49,7 +49,7 @@ export default function Home() {
             <span className="text-blue-200">with the Right Company</span>
           </h1>
           <p className="text-blue-100 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
-            RSD Consultancy specializes in sourcing pre-screened engineering, QA/QC, and project management professionals — faster than any job portal.
+            matchwork specializes in sourcing pre-screened engineering, QA/QC, and project management professionals — faster than any job portal.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -207,11 +207,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why RSD */}
+      {/* Why matchwork */
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold text-gray-900">Why Choose RSD Over Job Portals?</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Why Choose matchwork Over Job Portals?</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {[
@@ -309,9 +309,9 @@ export default function Home() {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">R</span>
             </div>
-            <span className="text-white font-semibold">RSD Consultancy</span>
+            <span className="text-white font-semibold">matchwork</span>
           </div>
-          <p className="text-sm text-center">© {new Date().getFullYear()} RSD Consultancy. All rights reserved.</p>
+          <p className="text-sm text-center">© {new Date().getFullYear()} matchwork. All rights reserved.</p>
           <div className="flex items-center gap-6 text-sm">
             <Link href="/apply" className="hover:text-white transition-colors">Candidates</Link>
             <Link href="/hire" className="hover:text-white transition-colors">Companies</Link>

@@ -39,7 +39,7 @@ export default function AdminLogin() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Admin Login</h1>
-          <p className="text-gray-500 text-sm mt-1">RSD Consultancy Portal</p>
+          <p className="text-gray-500 text-sm mt-1">matchwork Portal</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">

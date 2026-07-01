@@ -75,7 +75,7 @@ export default function CandidateJobs() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">R</span>
           </div>
-          <span className="font-semibold text-gray-900">RSD Consultancy</span>
+          <span className="font-semibold text-gray-900">matchwork</span>
           <span className="text-gray-400 text-sm ml-1">/ Jobs</span>
         </div>
         <div className="flex items-center gap-4">
@@ -91,7 +91,7 @@ export default function CandidateJobs() {
           <h1 className="text-2xl font-bold text-gray-900">Available Positions</h1>
           <p className="text-gray-500 text-sm mt-1">
             {jobs.length > 0
-              ? `${jobs.length} open position${jobs.length > 1 ? 's' : ''} — apply via RSD Consultancy`
+              ? `${jobs.length} open position${jobs.length > 1 ? 's' : ''} — apply via matchwork`
               : 'No open positions at this time. Check back soon.'}
           </p>
         </div>
@@ -206,7 +206,7 @@ export default function CandidateJobs() {
         )}
 
         <p className="text-center text-xs text-gray-400 mt-8">
-          Your profile is with RSD Consultancy. We&apos;ll reach out when we find the right match.
+          Your profile is with matchwork. We&apos;ll reach out when we find the right match.
         </p>
       </div>
     </main>

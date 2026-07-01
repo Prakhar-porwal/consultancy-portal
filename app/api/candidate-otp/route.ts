@@ -43,13 +43,13 @@ export async function POST(req: NextRequest) {
   })
 
   await transporter.sendMail({
-    from: `RSD Consultancy <${process.env.SMTP_USER}>`,
+    from: `matchwork <${process.env.SMTP_USER}>`,
     to: email,
-    subject: 'Your RSD Consultancy Login Code',
+    subject: 'Your matchwork Login Code',
     html: `
       <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 16px;">
         <div style="background:#1d4ed8;border-radius:12px 12px 0 0;padding:24px 28px;">
-          <div style="font-size:20px;font-weight:700;color:#fff;">RSD Consultancy</div>
+          <div style="font-size:20px;font-weight:700;color:#fff;">matchwork</div>
         </div>
         <div style="background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;padding:28px;">
           <p style="font-size:15px;color:#111827;margin:0 0 16px;">Your one-time login code is:</p>

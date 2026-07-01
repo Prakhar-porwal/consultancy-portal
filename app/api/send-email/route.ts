@@ -145,7 +145,7 @@ async function redactResumePdf(pdfBuffer: Buffer): Promise<Buffer> {
   // Diagonal watermark on every page
   for (const page of pages) {
     const { width, height } = page.getSize()
-    page.drawText('RSD CONSULTANCY — CONFIDENTIAL', {
+    page.drawText('matchwork — CONFIDENTIAL', {
       x: width / 2 - 120,
       y: height / 2,
       size: 16,
@@ -218,7 +218,7 @@ function buildHtml(candidates: Candidate[], clientName: string, customNote: stri
             <td width="50%" style="padding:6px 0;vertical-align:top;">
               <table cellpadding="0" cellspacing="0">
                 <tr><td style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;padding-bottom:2px;">Contact</td></tr>
-                <tr><td style="font-size:13px;color:#6b7280;font-style:italic;">Available via RSD Consultancy</td></tr>
+                <tr><td style="font-size:13px;color:#6b7280;font-style:italic;">Available via matchwork</td></tr>
               </table>
             </td>
           </tr>
@@ -238,7 +238,7 @@ function buildHtml(candidates: Candidate[], clientName: string, customNote: stri
 
         <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6;background:#fefce8;border-radius:0 0 8px 8px;padding:10px 14px;">
           <span style="font-size:12px;color:#92400e;">
-            📞 To schedule an interview or get contact details, please reach out to <strong>RSD Consultancy</strong> at <a href="mailto:prakhar@rsd.org.in" style="color:#1d4ed8;">prakhar@rsd.org.in</a>
+            📞 To schedule an interview or get contact details, please reach out to <strong>matchwork</strong> at <a href="mailto:prakhar@rsd.org.in" style="color:#1d4ed8;">prakhar@rsd.org.in</a>
           </span>
         </div>
       </div>
@@ -262,7 +262,7 @@ function buildHtml(candidates: Candidate[], clientName: string, customNote: stri
         <!-- Header -->
         <tr>
           <td style="background:#1d4ed8;border-radius:12px 12px 0 0;padding:28px 32px;">
-            <div style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">RSD Consultancy</div>
+            <div style="font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">matchwork</div>
             <div style="font-size:13px;color:#bfdbfe;margin-top:4px;">Candidate Profiles — Shared exclusively for your consideration</div>
           </td>
         </tr>
@@ -286,7 +286,7 @@ function buildHtml(candidates: Candidate[], clientName: string, customNote: stri
 
             <div style="margin-top:28px;padding-top:20px;border-top:1px solid #e5e7eb;">
               <p style="font-size:14px;color:#4b5563;margin:0 0 6px;">Please feel free to reach out for any further information or to schedule interviews.</p>
-              <p style="font-size:14px;color:#111827;font-weight:600;margin:0;">Warm regards,<br>RSD Consultancy Team</p>
+              <p style="font-size:14px;color:#111827;font-weight:600;margin:0;">Warm regards,<br>matchwork Team</p>
               <p style="font-size:13px;color:#9ca3af;margin:4px 0 0;">prakhar@rsd.org.in</p>
             </div>
 
@@ -353,7 +353,7 @@ export async function POST(req: NextRequest) {
     }
 
     await transporter.sendMail({
-      from: `RSD Consultancy <${process.env.SMTP_USER}>`,
+      from: `matchwork <${process.env.SMTP_USER}>`,
       to: `${toName} <${toEmail}>`,
       subject,
       html: buildHtml(candidates, toName, customNote),

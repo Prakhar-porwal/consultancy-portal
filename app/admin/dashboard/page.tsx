@@ -19,7 +19,7 @@ const STATUS_OPTIONS = ['new', 'screening', 'shortlisted', 'rejected', 'placed']
 const INITIAL_EMAIL = {
   toEmail: '',
   toName: '',
-  subject: 'Candidate Profiles — RSD Consultancy',
+  subject: 'Candidate Profiles — matchwork',
   customNote: '',
 }
 
@@ -386,7 +386,7 @@ export default function AdminDashboard() {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">R</span>
             </div>
-            <span className="font-semibold text-gray-900">RSD Consultancy</span>
+            <span className="font-semibold text-gray-900">matchwork</span>
             <span className="text-gray-400 text-sm ml-1">/ Admin</span>
           </div>
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 ml-2">
