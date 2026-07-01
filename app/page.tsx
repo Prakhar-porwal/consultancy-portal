@@ -207,7 +207,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why matchwork */
+      {/* Why matchwork */}
       <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
