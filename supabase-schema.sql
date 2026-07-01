@@ -78,3 +78,37 @@ create policy "Public read active jobs" on jobs
 -- Authenticated users (admin) can read all jobs including closed
 create policy "Auth read all jobs" on jobs
   for select using (auth.role() = 'authenticated');
+
+-- ─── HIRING REQUIREMENTS (submitted by companies via /hire) ───────────────────
+
+create table if not exists hiring_requirements (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz default now() not null,
+  company_name text not null,
+  contact_name text not null,
+  contact_email text not null,
+  contact_phone text not null,
+  job_title text not null,
+  num_positions integer not null default 1,
+  experience_required text not null,
+  skills_required text not null,
+  location text not null,
+  budget_ctc text,
+  timeline text not null,
+  notes text,
+  status text not null default 'new'
+);
+
+alter table hiring_requirements enable row level security;
+
+-- Anyone can submit a requirement (public form)
+create policy "Public can insert requirements" on hiring_requirements
+  for insert to anon with check (true);
+
+-- Admin can read and manage all requirements
+create policy "Auth read requirements" on hiring_requirements
+  for select using (auth.role() = 'authenticated');
+
+create policy "Auth update requirements" on hiring_requirements
+  for update using (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');

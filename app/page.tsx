@@ -1,615 +1,324 @@
-'use client'
+import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
-
-import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-
-const NOTICE_PERIOD_OPTIONS = [
-  'Immediate',
-  '15 days',
-  '1 month',
-  '2 months',
-  '3 months',
-  'More than 3 months',
-]
-
-const EXPERIENCE_OPTIONS = [
-  '4 years',
-  '5 years',
-  '6 years',
-  '7 years',
-  '8 years',
-  '9 years',
-  '10 years',
-  '11 years',
-  '12 years',
-  '13 years',
-  '14 years',
-  '15 years',
-  '16-18 years',
-  '18-20 years',
-  '20+ years',
-]
-
-
-const SKILL_GROUPS = [
-  {
-    label: 'Civil & Structural',
-    skills: [
-      'AutoCAD', 'Revit', 'Civil 3D', 'STAAD Pro', 'ETABS', 'SAP2000',
-      'Structural Design', 'RCC Design', 'Steel Design', 'Foundation Design',
-      'Road Design', 'Drainage Design', 'Highway Engineering',
-      'Geotechnical Engineering', 'Water Supply & Sanitation',
-      'Surveying', 'Soil Testing', 'Building Construction', 'Waterproofing',
-    ],
-  },
-  {
-    label: 'QA / QC',
-    skills: [
-      'Quality Control', 'Quality Assurance', 'QA/QC Management',
-      'NDT (Non-Destructive Testing)', 'Material Testing', 'Concrete Mix Design',
-      'Lab Testing', 'Field Testing', 'Third Party Inspection',
-      'IS Codes', 'IRC Codes', 'Inspection & Test Plan (ITP)',
-      'Method Statements', 'As-Built Documentation', 'Punch List Management',
-    ],
-  },
-  {
-    label: 'Project & Contracts',
-    skills: [
-      'Project Management', 'Site Supervision', 'Quantity Surveying',
-      'Estimation & Costing', 'BOQ Preparation', 'Billing',
-      'Tender Documentation', 'Contract Management', 'MEP Coordination',
-      'Primavera P6', 'MS Project',
-    ],
-  },
-  {
-    label: 'Electronics & Electrical',
-    skills: [
-      'AutoCAD Electrical', 'PLC Programming', 'SCADA', 'HMI',
-      'Panel Design', 'Electrical Estimation', 'Load Calculation',
-      'Single Line Diagram', 'Cable Tray Design', 'Switchgear',
-      'Motor Control Center (MCC)', 'Power Distribution',
-      'Substation Design', 'Earthing & Lightning Protection',
-      'Protection & Relay', 'Instrumentation', 'DCS', 'VFD / Drives',
-      'Low Voltage Systems', 'MEP Design',
-    ],
-  },
-]
-
-const EDUCATION_OPTIONS = ['Graduation (B.E. / B.Tech / B.Sc / B.Com / etc.)', 'Diploma', 'Post Graduation (M.E. / M.Tech / MBA / etc.)', 'Other']
-
-type FormData = {
-  full_name: string
-  email: string
-  phone: string
-  alt_phone: string
-  linkedin_url: string
-  ready_to_relocate: string
-  education_type: string
-  education_institution: string
-  current_company: string
-  current_ctc: string
-  expected_ctc: string
-  notice_period: string
-  is_immediate_joiner: boolean
-  total_experience: string
-  skills: string
-  current_location: string
-  preferred_location: string
-}
-
-const INITIAL: FormData = {
-  full_name: '',
-  email: '',
-  phone: '',
-  alt_phone: '',
-  linkedin_url: '',
-  ready_to_relocate: '',
-  education_type: '',
-  education_institution: '',
-  current_company: '',
-  current_ctc: '',
-  expected_ctc: '',
-  notice_period: '',
-  is_immediate_joiner: false,
-  total_experience: '',
-  skills: '',
-  current_location: '',
-  preferred_location: '',
-}
-
-type FieldErrors = Partial<Record<keyof FormData | 'resume', string>>
-
-function validate(form: FormData, resumeFile: File | null): FieldErrors {
-  const e: FieldErrors = {}
-  if (!form.full_name.trim()) {
-    e.full_name = 'Full name is required.'
-  } else if (form.full_name.trim().length < 2) {
-    e.full_name = 'Name must be at least 2 characters.'
-  } else if (!/^[a-zA-Z\s.'-]+$/.test(form.full_name.trim())) {
-    e.full_name = 'Name can only contain letters, spaces, and . \' -'
-  }
-
-  if (!form.email.trim()) {
-    e.email = 'Email is required.'
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-    e.email = 'Enter a valid email address.'
-  }
-
-  if (!form.phone.trim()) {
-    e.phone = 'Phone number is required.'
-  } else {
-    const digits = form.phone.replace(/[\s\-()]/g, '').replace(/^\+91/, '')
-    if (!/^[6-9]\d{9}$/.test(digits)) {
-      e.phone = 'Enter a valid 10-digit Indian mobile number (starts with 6–9).'
-    }
-  }
-
-  if (form.alt_phone.trim()) {
-    const digits = form.alt_phone.replace(/[\s\-()]/g, '').replace(/^\+91/, '')
-    if (!/^[6-9]\d{9}$/.test(digits)) {
-      e.alt_phone = 'Enter a valid 10-digit Indian mobile number.'
-    }
-  }
-
-  if (form.linkedin_url.trim() && !/^https?:\/\/(www\.)?linkedin\.com\//.test(form.linkedin_url.trim())) {
-    e.linkedin_url = 'Enter a valid LinkedIn URL (e.g. https://linkedin.com/in/yourname).'
-  }
-
-  if (!form.ready_to_relocate) {
-    e.ready_to_relocate = 'Please select an option.'
-  }
-
-  if (!form.education_type) {
-    e.education_type = 'Please select your education.'
-  }
-
-  if (!form.education_institution.trim()) {
-    e.education_institution = 'Please enter your college / university / institution name.'
-  }
-
-  if (!form.current_location.trim()) {
-    e.current_location = 'Current location is required.'
-  } else if (form.current_location.trim().length < 2) {
-    e.current_location = 'Enter a valid location.'
-  }
-
-  if (!form.total_experience) {
-    e.total_experience = 'Please select your experience.'
-  }
-
-  if (!form.current_ctc) {
-    e.current_ctc = 'Current CTC is required.'
-  } else if (isNaN(parseFloat(form.current_ctc)) || parseFloat(form.current_ctc) < 0) {
-    e.current_ctc = 'Enter a valid CTC (0 or above).'
-  }
-
-  if (!form.expected_ctc) {
-    e.expected_ctc = 'Expected CTC is required.'
-  } else if (isNaN(parseFloat(form.expected_ctc)) || parseFloat(form.expected_ctc) <= 0) {
-    e.expected_ctc = 'Expected CTC must be greater than 0.'
-  }
-
-  if (!form.notice_period) {
-    e.notice_period = 'Please select a notice period.'
-  }
-
-  if (!form.skills.trim()) {
-    e.skills = 'Please list at least one skill.'
-  } else if (form.skills.trim().length < 2) {
-    e.skills = 'Skills are too short.'
-  }
-
-  if (!resumeFile) {
-    e.resume = 'Please upload your resume.'
-  } else if (resumeFile.size > 5 * 1024 * 1024) {
-    e.resume = 'File must be under 5 MB.'
-  }
-
-  return e
-}
-
-const ALL_SKILLS = SKILL_GROUPS.flatMap(g => g.skills)
-
-export default function CandidateForm() {
-  const [form, setForm] = useState<FormData>(INITIAL)
-  const [resumeFile, setResumeFile] = useState<File | null>(null)
-  const [errors, setErrors] = useState<FieldErrors>({})
-  const [touched, setTouched] = useState<Partial<Record<keyof FormData | 'resume', boolean>>>({})
-  const [submitAttempted, setSubmitAttempted] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-  const [skillQuery, setSkillQuery] = useState('')
-  const [serverError, setServerError] = useState('')
-
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
-    const { name, value, type } = e.target
-    const updated = {
-      ...form,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
-    }
-    setForm(updated)
-    if (submitAttempted) {
-      setErrors(validate(updated, resumeFile))
-    } else if (touched[name as keyof FormData]) {
-      const allErrors = validate(updated, resumeFile)
-      setErrors(prev => ({ ...prev, [name]: allErrors[name as keyof typeof allErrors] }))
-    }
-  }
-
-  function handleBlur(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
-    const name = e.target.name as keyof FormData
-    const newTouched = { ...touched, [name]: true }
-    setTouched(newTouched)
-    const allErrors = validate(form, resumeFile)
-    setErrors(prev => ({
-      ...prev,
-      [name]: allErrors[name as keyof typeof allErrors],
-    }))
-  }
-
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] ?? null
-    setResumeFile(file)
-    const allErrors = validate(form, file)
-    setErrors(prev => ({ ...prev, resume: allErrors.resume }))
-    setTouched(prev => ({ ...prev, resume: true }))
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setSubmitAttempted(true)
-    const errs = validate(form, resumeFile)
-    setErrors(errs)
-    if (Object.keys(errs).length > 0) return
-
-    setServerError('')
-    setLoading(true)
-    try {
-      let resume_url: string | null = null
-      if (resumeFile) {
-        setUploadProgress('Uploading resume...')
-        const ext = resumeFile.name.split('.').pop()
-        const fileName = `${Date.now()}_${form.full_name.replace(/\s+/g, '_')}.${ext}`
-        const { error: uploadError } = await supabase.storage
-          .from('resumes')
-          .upload(fileName, resumeFile, { upsert: false })
-        if (uploadError) throw uploadError
-        const { data: urlData } = supabase.storage.from('resumes').getPublicUrl(fileName)
-        resume_url = urlData.publicUrl
-        setUploadProgress('Saving details...')
-      }
-
-      const { error: dbError } = await supabase.from('candidates').insert({
-        ...form,
-        current_ctc: parseFloat(form.current_ctc),
-        expected_ctc: parseFloat(form.expected_ctc),
-        ready_to_relocate: form.ready_to_relocate === 'yes',
-        alt_phone: form.alt_phone.trim() || null,
-        linkedin_url: form.linkedin_url.trim() || null,
-        resume_url,
-        status: 'new',
-      })
-      if (dbError) throw dbError
-      setSubmitted(true)
-    } catch (err: unknown) {
-      setServerError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
-    } finally {
-      setLoading(false)
-      setUploadProgress('')
-    }
-  }
-
-  if (submitted) {
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg px-10 py-12 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
-            <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Thank You!</h2>
-          <p className="text-gray-500 leading-relaxed mb-2">
-            Your application has been successfully submitted to <span className="font-semibold text-gray-700">RSD Consultancy</span>.
-          </p>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            Our team will carefully review your profile and reach out to you shortly if there is a suitable opportunity.
-          </p>
-          <div className="mt-8 pt-6 border-t border-gray-100 space-y-3">
-            <a
-              href="/candidate/login"
-              className="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors"
-            >
-              View Available Jobs
-            </a>
-            <p className="text-xs text-gray-400">For queries, contact us at</p>
-            <p className="text-sm font-medium text-blue-600">prakhar@rsd.org.in</p>
-          </div>
-        </div>
-      </main>
-    )
-  }
-
+export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4">
-      {/* Top nav bar */}
-      <div className="max-w-2xl mx-auto mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">R</span>
+    <main className="min-h-screen bg-white font-sans">
+      {/* Navbar */}
+      <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow">
+              <span className="text-white font-bold text-base">R</span>
+            </div>
+            <div>
+              <span className="font-bold text-gray-900 text-lg leading-none">RSD Consultancy</span>
+              <p className="text-xs text-gray-400 leading-none mt-0.5">Recruitment &amp; Staffing</p>
+            </div>
           </div>
-          <span className="font-semibold text-gray-800">RSD Consultancy</span>
+          <div className="hidden md:flex items-center gap-8 text-sm text-gray-600">
+            <a href="#services" className="hover:text-blue-600 transition-colors">Services</a>
+            <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How It Works</a>
+            <a href="#contact" className="hover:text-blue-600 transition-colors">Contact</a>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/apply"
+              className="text-sm text-gray-600 hover:text-blue-600 transition-colors hidden sm:block"
+            >
+              I&apos;m a Candidate
+            </Link>
+            <Link
+              href="/hire"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm"
+            >
+              Post a Requirement
+            </Link>
+          </div>
         </div>
-        <a
-          href="/candidate/login"
-          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-          </svg>
-          Candidate Login
-        </a>
-      </div>
+      </nav>
 
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Join RSD Consultancy</h1>
-          <p className="text-gray-500 mt-1">Submit your profile to explore exciting opportunities</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
-          <h2 className="text-xl font-semibold text-gray-800 border-b pb-3">Personal Information</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Full Name *" error={errors.full_name}>
-              <input name="full_name" value={form.full_name} onChange={handleChange} onBlur={handleBlur}
-                placeholder="John Doe" className={ic(errors.full_name)} />
-            </Field>
-            <Field label="Email Address *" error={errors.email}>
-              <input name="email" type="email" value={form.email} onChange={handleChange} onBlur={handleBlur}
-                placeholder="john@example.com" className={ic(errors.email)} />
-            </Field>
-            <Field label="Phone Number *" error={errors.phone}>
-              <input name="phone" value={form.phone} onChange={handleChange} onBlur={handleBlur}
-                placeholder="+91 9876543210" maxLength={13} className={ic(errors.phone)} />
-            </Field>
-            <Field label="Alternative Phone" error={errors.alt_phone}>
-              <input name="alt_phone" value={form.alt_phone} onChange={handleChange} onBlur={handleBlur}
-                placeholder="+91 9876543210 (optional)" maxLength={13} className={ic(errors.alt_phone)} />
-            </Field>
-            <Field label="LinkedIn Profile URL" error={errors.linkedin_url}>
-              <input name="linkedin_url" value={form.linkedin_url} onChange={handleChange} onBlur={handleBlur}
-                placeholder="https://linkedin.com/in/yourname" className={ic(errors.linkedin_url)} />
-            </Field>
-            <Field label="Current Company">
-              <input name="current_company" value={form.current_company} onChange={handleChange} onBlur={handleBlur}
-                placeholder="Infosys, TCS, etc." className={ic()} />
-            </Field>
-            <Field label="Ready to Relocate *" error={errors.ready_to_relocate}>
-              <select name="ready_to_relocate" value={form.ready_to_relocate} onChange={handleChange} onBlur={handleBlur} className={ic(errors.ready_to_relocate)}>
-                <option value="">Select option</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
-              </select>
-            </Field>
-            <Field label="Education *" error={errors.education_type}>
-              <select name="education_type" value={form.education_type} onChange={handleChange} onBlur={handleBlur} className={ic(errors.education_type)}>
-                <option value="">Select education</option>
-                {EDUCATION_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </Field>
-            <div className="md:col-span-2">
-              <Field label="College / University / Institution *" error={errors.education_institution}>
-                <input name="education_institution" value={form.education_institution} onChange={handleChange} onBlur={handleBlur}
-                  placeholder="e.g. IIT Bombay, VJTI, Government Polytechnic" className={ic(errors.education_institution)} />
-              </Field>
-            </div>
-            <Field label="Current Location *" error={errors.current_location}>
-              <input name="current_location" value={form.current_location} onChange={handleChange} onBlur={handleBlur}
-                placeholder="Mumbai, Maharashtra" className={ic(errors.current_location)} />
-            </Field>
-            <Field label="Preferred Location">
-              <input name="preferred_location" value={form.preferred_location} onChange={handleChange} onBlur={handleBlur}
-                placeholder="Bangalore, Pune, etc." className={ic()} />
-            </Field>
+      {/* Hero */}
+      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white py-24 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-sm font-medium mb-8">
+            <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+            Specialized Engineering &amp; Technical Recruitment
           </div>
-
-          <h2 className="text-xl font-semibold text-gray-800 border-b pb-3 pt-2">Professional Details</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Total Experience *" error={errors.total_experience}>
-              <select name="total_experience" value={form.total_experience} onChange={handleChange} onBlur={handleBlur} className={ic(errors.total_experience)}>
-                <option value="">Select experience</option>
-                {EXPERIENCE_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </Field>
-            <Field label="Current CTC (LPA) *" error={errors.current_ctc}>
-              <input name="current_ctc" type="number" min="0" step="0.1"
-                value={form.current_ctc} onChange={handleChange} onBlur={handleBlur}
-                className={ic(errors.current_ctc)} />
-            </Field>
-            <Field label="Expected CTC (LPA) *" error={errors.expected_ctc}>
-              <input name="expected_ctc" type="number" min="0" step="0.1"
-                value={form.expected_ctc} onChange={handleChange} onBlur={handleBlur}
-                className={ic(errors.expected_ctc)} />
-            </Field>
-            <Field label="Notice Period *" error={errors.notice_period}>
-              <select name="notice_period" value={form.notice_period} onChange={handleChange} onBlur={handleBlur} className={ic(errors.notice_period)}>
-                <option value="">Select notice period</option>
-                {NOTICE_PERIOD_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </Field>
-          </div>
-
-          <div className="flex items-center gap-3 bg-blue-50 rounded-lg p-4">
-            <input
-              type="checkbox"
-              id="is_immediate_joiner"
-              name="is_immediate_joiner"
-              checked={form.is_immediate_joiner}
-              onChange={handleChange}
-              className="w-5 h-5 accent-blue-600 cursor-pointer"
-            />
-            <label htmlFor="is_immediate_joiner" className="text-gray-700 font-medium cursor-pointer">
-              I am an immediate joiner / can join within 15 days
-            </label>
-          </div>
-
-          <Field label="Key Skills *" error={errors.skills}>
-            {/* Added skill chips */}
-            {form.skills.trim() && (
-              <div className="flex flex-wrap gap-2 mb-2">
-                {form.skills.split(',').map(s => s.trim()).filter(Boolean).map(skill => (
-                  <span key={skill} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-medium">
-                    {skill}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updated = {
-                          ...form,
-                          skills: form.skills.split(',').map(s => s.trim()).filter(s => s.toLowerCase() !== skill.toLowerCase()).join(', '),
-                        }
-                        setForm(updated)
-                        if (submitAttempted || touched.skills) setErrors(prev => ({ ...prev, skills: validate(updated, resumeFile).skills }))
-                      }}
-                      className="text-blue-400 hover:text-blue-700 leading-none ml-0.5"
-                    >×</button>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Search input */}
-            <div className="relative">
-              <input
-                type="text"
-                value={skillQuery}
-                onChange={e => setSkillQuery(e.target.value)}
-                onKeyDown={e => {
-                  if ((e.key === 'Enter' || e.key === ',') && skillQuery.trim()) {
-                    e.preventDefault()
-                    const newSkill = skillQuery.trim().replace(/,$/, '')
-                    if (!newSkill) return
-                    const addedSkills = form.skills.split(',').map(s => s.trim().toLowerCase())
-                    if (addedSkills.includes(newSkill.toLowerCase())) { setSkillQuery(''); return }
-                    const current = form.skills.trim()
-                    const updated = { ...form, skills: current ? `${current}, ${newSkill}` : newSkill }
-                    setForm(updated)
-                    setSkillQuery('')
-                    if (submitAttempted || touched.skills) setErrors(prev => ({ ...prev, skills: validate(updated, resumeFile).skills }))
-                  }
-                }}
-                onBlur={() => {
-                  setTimeout(() => setSkillQuery(''), 150)
-                  setTouched(prev => ({ ...prev, skills: true }))
-                  const allErrors = validate(form, resumeFile)
-                  setErrors(prev => ({ ...prev, skills: allErrors.skills }))
-                }}
-                placeholder="Type to search or add custom skill, press Enter to add"
-                className={ic(errors.skills)}
-              />
-              {skillQuery.trim().length >= 1 && (() => {
-                const q = skillQuery.toLowerCase()
-                const addedSkills = form.skills.split(',').map(s => s.trim().toLowerCase())
-                const matches = ALL_SKILLS.filter(s => s.toLowerCase().includes(q) && !addedSkills.includes(s.toLowerCase()))
-                if (matches.length === 0) return null
-                return (
-                  <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                    {matches.map(skill => (
-                      <button
-                        key={skill}
-                        type="button"
-                        onMouseDown={() => {
-                          const current = form.skills.trim()
-                          const updated = { ...form, skills: current ? `${current}, ${skill}` : skill }
-                          setForm(updated)
-                          setSkillQuery('')
-                          if (submitAttempted || touched.skills) setErrors(prev => ({ ...prev, skills: validate(updated, resumeFile).skills }))
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-                      >
-                        {skill}
-                      </button>
-                    ))}
-                  </div>
-                )
-              })()}
-            </div>
-            <p className="text-xs text-gray-400 mt-1">Search and select skills, or type them separated by commas</p>
-          </Field>
-
-          <Field label="Resume * (PDF or DOCX, max 5 MB)" error={errors.resume}>
-            <div className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-colors ${errors.resume ? 'border-red-400 bg-red-50' : resumeFile ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-400'}`}>
-              <input
-                type="file"
-                accept=".pdf,.docx"
-                onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              {resumeFile ? (
-                <div className="flex items-center justify-center gap-2 text-blue-700">
-                  <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span className="text-sm font-medium truncate max-w-[260px]">{resumeFile.name}</span>
-                  <button
-                    type="button"
-                    onClick={e => { e.stopPropagation(); setResumeFile(null); setErrors(v => ({ ...v, resume: undefined })) }}
-                    className="ml-1 text-gray-400 hover:text-red-500 shrink-0"
-                  >✕</button>
-                </div>
-              ) : (
-                <div className="text-gray-500 text-sm">
-                  <svg className="w-8 h-8 mx-auto mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <span className="font-medium text-blue-600">Click to upload</span> or drag and drop
-                  <p className="text-xs text-gray-400 mt-0.5">PDF or DOCX, up to 5 MB</p>
-                </div>
-              )}
-            </div>
-          </Field>
-
-          {serverError && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
-              {serverError}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-3 rounded-lg transition-colors text-lg"
-          >
-            {loading ? (uploadProgress || 'Submitting...') : 'Submit Application'}
-          </button>
-
-          <p className="text-center text-xs text-gray-400">
-            Your information is confidential and will only be shared with relevant clients.
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+            We Connect the Right Talent<br />
+            <span className="text-blue-200">with the Right Company</span>
+          </h1>
+          <p className="text-blue-100 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
+            RSD Consultancy specializes in sourcing pre-screened engineering, QA/QC, and project management professionals — faster than any job portal.
           </p>
-        </form>
-      </div>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/hire"
+              className="bg-white text-blue-700 font-bold px-8 py-4 rounded-xl hover:bg-blue-50 transition-colors text-base shadow-lg"
+            >
+              Post a Hiring Requirement →
+            </Link>
+            <Link
+              href="/apply"
+              className="border border-white/40 text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/10 transition-colors text-base"
+            >
+              Register as a Candidate
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="bg-gray-50 border-b border-gray-100 py-10 px-6">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          {[
+            { value: '200+', label: 'Candidates in Database' },
+            { value: '30+', label: 'Companies Served' },
+            { value: '15 Days', label: 'Avg. Time to Hire' },
+            { value: '100%', label: 'Confidential Process' },
+          ].map(stat => (
+            <div key={stat.label}>
+              <div className="text-3xl font-bold text-blue-600">{stat.value}</div>
+              <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Services */}
+      <section id="services" className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl font-bold text-gray-900">Our Hiring Specializations</h2>
+            <p className="text-gray-500 mt-3 max-w-xl mx-auto">We maintain a curated pool of verified professionals across key engineering domains.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                icon: (
+                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                ),
+                title: 'Civil & Structural',
+                skills: ['AutoCAD & Revit', 'STAAD Pro / ETABS', 'Structural & RCC Design', 'Road & Highway Eng.', 'Geotechnical Eng.'],
+              },
+              {
+                icon: (
+                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ),
+                title: 'QA / QC',
+                skills: ['Quality Assurance', 'NDT Inspection', 'Material Testing', 'IS / IRC Codes', 'ITP & Method Statements'],
+              },
+              {
+                icon: (
+                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                ),
+                title: 'Electrical & MEP',
+                skills: ['PLC / SCADA / HMI', 'Panel & Switchgear Design', 'Power Distribution', 'MEP Coordination', 'Instrumentation & DCS'],
+              },
+              {
+                icon: (
+                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                ),
+                title: 'Project Management',
+                skills: ['Primavera P6 / MS Project', 'BOQ & Estimation', 'Contract Management', 'Site Supervision', 'Quantity Surveying'],
+              },
+              {
+                icon: (
+                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                ),
+                title: 'Senior Leadership',
+                skills: ['Project Directors', 'GM / DGM Level', 'Department Heads', 'Cluster Managers', 'VP / AVP Roles'],
+              },
+              {
+                icon: (
+                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                ),
+                title: 'Urgent / Niche Hiring',
+                skills: ['Immediate Joiners', 'Contract Staffing', 'Bulk Hiring', 'Pan-India Placement', 'Confidential Search'],
+              },
+            ].map(service => (
+              <div key={service.title} className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md hover:border-blue-200 transition-all">
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
+                  {service.icon}
+                </div>
+                <h3 className="font-bold text-gray-900 text-lg mb-3">{service.title}</h3>
+                <ul className="space-y-1.5">
+                  {service.skills.map(s => (
+                    <li key={s} className="flex items-center gap-2 text-sm text-gray-600">
+                      <svg className="w-4 h-4 text-blue-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="bg-gray-50 py-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl font-bold text-gray-900">How It Works for You</h2>
+            <p className="text-gray-500 mt-3">Simple 3-step process — no job portal complexity, no wasted time.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '01',
+                title: 'Share Your Requirement',
+                desc: 'Fill a simple form telling us what role you need, how many positions, experience required, and your timeline.',
+              },
+              {
+                step: '02',
+                title: 'We Screen & Shortlist',
+                desc: 'We search our database of pre-registered candidates and personally screen profiles matching your exact criteria.',
+              },
+              {
+                step: '03',
+                title: 'You Interview & Hire',
+                desc: 'We send you shortlisted CVs within 48–72 hours. You interview and hire. We handle the coordination.',
+              },
+            ].map(item => (
+              <div key={item.step} className="text-center">
+                <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md">
+                  <span className="text-white font-bold text-lg">{item.step}</span>
+                </div>
+                <h3 className="font-bold text-gray-900 text-lg mb-2">{item.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why RSD */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl font-bold text-gray-900">Why Choose RSD Over Job Portals?</h2>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              {
+                title: 'No Subscription Fees',
+                desc: 'You pay only on successful placement — no monthly portal charges or posting fees.',
+                icon: '💰',
+              },
+              {
+                title: 'Pre-Screened Profiles Only',
+                desc: 'Every candidate in our database has been interviewed and verified before we share their profile with you.',
+                icon: '✅',
+              },
+              {
+                title: 'Faster Turnaround',
+                desc: 'We typically deliver shortlisted candidates in 48–72 hours vs weeks of waiting on job portals.',
+                icon: '⚡',
+              },
+              {
+                title: 'Sector Specialized',
+                desc: 'We specialize in engineering, construction, and infrastructure — not a generic "all jobs" portal.',
+                icon: '🎯',
+              },
+            ].map(item => (
+              <div key={item.title} className="flex gap-4 bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-shadow">
+                <div className="text-3xl shrink-0">{item.icon}</div>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-1">{item.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Banner */}
+      <section className="bg-blue-600 py-16 px-6 text-white text-center">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold mb-4">Ready to Hire the Right Person?</h2>
+          <p className="text-blue-100 mb-8 text-lg">Share your requirement and we&apos;ll get back to you within 24 hours.</p>
+          <Link
+            href="/hire"
+            className="inline-block bg-white text-blue-700 font-bold px-10 py-4 rounded-xl hover:bg-blue-50 transition-colors text-base shadow-lg"
+          >
+            Post a Hiring Requirement →
+          </Link>
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section id="contact" className="py-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900">Get in Touch</h2>
+            <p className="text-gray-500 mt-3">Have questions? We&apos;d love to hear from you.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 text-center">
+            <div className="bg-gray-50 rounded-2xl p-6">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div className="font-semibold text-gray-900 text-sm mb-1">Email</div>
+              <a href="mailto:prakhar@rsd.org.in" className="text-blue-600 text-sm hover:underline">prakhar@rsd.org.in</a>
+            </div>
+            <div className="bg-gray-50 rounded-2xl p-6">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              </div>
+              <div className="font-semibold text-gray-900 text-sm mb-1">Phone / WhatsApp</div>
+              <a href="tel:+919876543210" className="text-blue-600 text-sm hover:underline">+91 98765 43210</a>
+            </div>
+            <div className="bg-gray-50 rounded-2xl p-6">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div className="font-semibold text-gray-900 text-sm mb-1">Location</div>
+              <span className="text-gray-500 text-sm">India (Pan-India Placement)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-400 py-10 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">R</span>
+            </div>
+            <span className="text-white font-semibold">RSD Consultancy</span>
+          </div>
+          <p className="text-sm text-center">© {new Date().getFullYear()} RSD Consultancy. All rights reserved.</p>
+          <div className="flex items-center gap-6 text-sm">
+            <Link href="/apply" className="hover:text-white transition-colors">Candidates</Link>
+            <Link href="/hire" className="hover:text-white transition-colors">Companies</Link>
+            <Link href="/admin/login" className="hover:text-white transition-colors">Admin</Link>
+          </div>
+        </div>
+      </footer>
     </main>
   )
-}
-
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      {children}
-      {error && <p className="text-xs text-red-600 mt-0.5">{error}</p>}
-    </div>
-  )
-}
-
-function ic(error?: string) {
-  return `border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent w-full bg-white ${
-    error
-      ? 'border-red-400 focus:ring-red-400'
-      : 'border-gray-300 focus:ring-blue-500'
-  }`
 }

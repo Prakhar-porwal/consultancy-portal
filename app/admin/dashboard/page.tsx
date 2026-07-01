@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase, type Candidate, type Client, type Job, type EmailLog } from '@/lib/supabase'
+import { supabase, type Candidate, type Client, type Job, type EmailLog, type HiringRequirement } from '@/lib/supabase'
 
 const STATUS_COLORS: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700',
@@ -32,7 +32,7 @@ const INITIAL_JOB = {
 
 export default function AdminDashboard() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'candidates' | 'jobs' | 'clients' | 'logs'>('candidates')
+  const [activeTab, setActiveTab] = useState<'candidates' | 'jobs' | 'clients' | 'logs' | 'requirements'>('candidates')
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
@@ -63,6 +63,11 @@ export default function AdminDashboard() {
   // logs
   const [logs, setLogs] = useState<EmailLog[]>([])
   const [logsLoading, setLogsLoading] = useState(false)
+
+  // requirements
+  const [requirements, setRequirements] = useState<HiringRequirement[]>([])
+  const [reqLoading, setReqLoading] = useState(false)
+  const [updatingReqStatus, setUpdatingReqStatus] = useState<string | null>(null)
 
   // clients management
   const [showClientModal, setShowClientModal] = useState(false)
@@ -117,10 +122,18 @@ export default function AdminDashboard() {
     setLogsLoading(false)
   }, [])
 
+  const fetchRequirements = useCallback(async () => {
+    setReqLoading(true)
+    const { data } = await supabase.from('hiring_requirements').select('*').order('created_at', { ascending: false })
+    setRequirements((data ?? []) as HiringRequirement[])
+    setReqLoading(false)
+  }, [])
+
   useEffect(() => {
     if (activeTab === 'jobs') fetchJobs()
     if (activeTab === 'logs') fetchLogs()
-  }, [activeTab, fetchJobs, fetchLogs])
+    if (activeTab === 'requirements') fetchRequirements()
+  }, [activeTab, fetchJobs, fetchLogs, fetchRequirements])
 
   function openNewJob() {
     setEditingJob(null)
@@ -410,6 +423,17 @@ export default function AdminDashboard() {
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'logs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               Logs
+            </button>
+            <button
+              onClick={() => setActiveTab('requirements')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'requirements' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              Requirements
+              {requirements.filter(r => r.status === 'new').length > 0 && (
+                <span className="ml-1.5 bg-orange-100 text-orange-700 text-xs px-1.5 py-0.5 rounded-full">
+                  {requirements.filter(r => r.status === 'new').length}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -705,6 +729,126 @@ export default function AdminDashboard() {
                         >
                           Delete
                         </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── REQUIREMENTS TAB ── */}
+        {activeTab === 'requirements' && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Hiring Requirements</h2>
+                <p className="text-sm text-gray-500 mt-0.5">Requirements submitted by companies via the portal</p>
+              </div>
+              {requirements.length > 0 && (
+                <span className="text-sm text-gray-500">{requirements.length} total</span>
+              )}
+            </div>
+
+            {reqLoading ? (
+              <div className="text-center py-16 text-gray-400 text-sm">Loading...</div>
+            ) : requirements.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
+                <div className="w-14 h-14 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <p className="text-gray-500 font-medium">No requirements yet</p>
+                <p className="text-gray-400 text-sm mt-1">Share the <strong>/hire</strong> link with companies to get started.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {requirements.map(req => {
+                  const REQ_STATUS_COLORS: Record<string, string> = {
+                    new: 'bg-orange-100 text-orange-700',
+                    in_progress: 'bg-blue-100 text-blue-700',
+                    fulfilled: 'bg-green-100 text-green-700',
+                    closed: 'bg-gray-100 text-gray-500',
+                  }
+                  return (
+                    <div key={req.id} className="bg-white rounded-2xl border border-gray-200 p-6">
+                      <div className="flex items-start justify-between gap-4 mb-4">
+                        <div>
+                          <h3 className="font-bold text-gray-900 text-lg">{req.job_title}</h3>
+                          <p className="text-sm text-gray-500 mt-0.5">
+                            {req.company_name} &middot; {req.num_positions} position{req.num_positions !== 1 ? 's' : ''} &middot; {req.location}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${REQ_STATUS_COLORS[req.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                            {req.status.replace('_', ' ')}
+                          </span>
+                          <select
+                            value={req.status}
+                            disabled={updatingReqStatus === req.id}
+                            onChange={async e => {
+                              const newStatus = e.target.value as HiringRequirement['status']
+                              setUpdatingReqStatus(req.id)
+                              await supabase.from('hiring_requirements').update({ status: newStatus }).eq('id', req.id)
+                              setRequirements(prev => prev.map(r => r.id === req.id ? { ...r, status: newStatus } : r))
+                              setUpdatingReqStatus(null)
+                            }}
+                            className="border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                          >
+                            <option value="new">New</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="fulfilled">Fulfilled</option>
+                            <option value="closed">Closed</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-4">
+                        <div>
+                          <span className="text-xs text-gray-400 uppercase tracking-wide">Experience</span>
+                          <p className="font-medium text-gray-800 mt-0.5">{req.experience_required}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs text-gray-400 uppercase tracking-wide">Timeline</span>
+                          <p className="font-medium text-gray-800 mt-0.5">{req.timeline}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs text-gray-400 uppercase tracking-wide">Budget</span>
+                          <p className="font-medium text-gray-800 mt-0.5">{req.budget_ctc || '—'}</p>
+                        </div>
+                        <div>
+                          <span className="text-xs text-gray-400 uppercase tracking-wide">Received</span>
+                          <p className="font-medium text-gray-800 mt-0.5">
+                            {new Date(req.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mb-3">
+                        <span className="text-xs text-gray-400 uppercase tracking-wide">Skills Required</span>
+                        <p className="text-sm text-gray-700 mt-1">{req.skills_required}</p>
+                      </div>
+
+                      {req.notes && (
+                        <div className="mb-3">
+                          <span className="text-xs text-gray-400 uppercase tracking-wide">Notes</span>
+                          <p className="text-sm text-gray-700 mt-1">{req.notes}</p>
+                        </div>
+                      )}
+
+                      <div className="pt-3 border-t border-gray-100 flex flex-wrap gap-4 items-center">
+                        <div>
+                          <span className="text-xs text-gray-400">Contact: </span>
+                          <span className="text-sm font-medium text-gray-800">{req.contact_name}</span>
+                        </div>
+                        <a href={`mailto:${req.contact_email}`} className="text-sm text-blue-600 hover:underline">
+                          {req.contact_email}
+                        </a>
+                        <a href={`tel:${req.contact_phone}`} className="text-sm text-blue-600 hover:underline">
+                          {req.contact_phone}
+                        </a>
                       </div>
                     </div>
                   )

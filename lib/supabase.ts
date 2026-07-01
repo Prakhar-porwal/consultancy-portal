@@ -70,3 +70,21 @@ export type Job = {
   status: 'active' | 'closed'
   created_at: string
 }
+
+export type HiringRequirement = {
+  id: string
+  created_at: string
+  company_name: string
+  contact_name: string
+  contact_email: string
+  contact_phone: string
+  job_title: string
+  num_positions: number
+  experience_required: string
+  skills_required: string
+  location: string
+  budget_ctc: string | null
+  timeline: string
+  notes: string | null
+  status: 'new' | 'in_progress' | 'fulfilled' | 'closed'
+}
