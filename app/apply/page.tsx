@@ -236,29 +236,29 @@ export default function CandidateForm() {
 
   if (submitted) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <main className="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg px-10 py-12 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
-            <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5">
+            <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Thank You!</h2>
-          <p className="text-gray-500 leading-relaxed mb-2">
-            Your application has been successfully submitted to <span className="font-semibold text-gray-700">matchwork</span>.
+          <h2 className="text-2xl font-bold text-slate-900 mb-3">Thank You!</h2>
+          <p className="text-slate-500 leading-relaxed mb-2">
+            Your application has been successfully submitted to <span className="font-semibold text-slate-700">matchwork</span>.
           </p>
-          <p className="text-gray-400 text-sm leading-relaxed">
+          <p className="text-slate-400 text-sm leading-relaxed">
             Our team will carefully review your profile and reach out to you shortly if there is a suitable opportunity.
           </p>
-          <div className="mt-8 pt-6 border-t border-gray-100 space-y-3">
+          <div className="mt-8 pt-6 border-t border-slate-100 space-y-3">
             <Link
               href="/candidate/login"
-              className="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors"
+              className="inline-block w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors"
             >
               View Available Jobs
             </Link>
-            <p className="text-xs text-gray-400">For queries, contact us at</p>
-            <p className="text-sm font-medium text-blue-600">support@matchwork.in</p>
+            <p className="text-xs text-slate-400">For queries, contact us at</p>
+            <p className="text-sm font-medium text-indigo-600">support@matchwork.in</p>
           </div>
         </div>
       </main>
@@ -266,12 +266,12 @@ export default function CandidateForm() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4">
+    <main className="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 py-10 px-4">
       <div className="max-w-2xl mx-auto mb-4 flex items-center justify-between">
         <Link href="/"><Logo /></Link>
         <Link
           href="/candidate/login"
-          className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors"
+          className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -282,12 +282,12 @@ export default function CandidateForm() {
 
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Join matchwork</h1>
-          <p className="text-gray-500 mt-1">Submit your profile to explore exciting opportunities</p>
+          <h1 className="text-3xl font-bold text-slate-900">Join matchwork</h1>
+          <p className="text-slate-500 mt-1">Submit your profile to explore exciting opportunities</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
-          <h2 className="text-xl font-semibold text-gray-800 border-b pb-3">Personal Information</h2>
+          <h2 className="text-xl font-semibold text-slate-800 border-b pb-3">Personal Information</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Full Name *" error={errors.full_name}>
@@ -343,7 +343,7 @@ export default function CandidateForm() {
             </Field>
           </div>
 
-          <h2 className="text-xl font-semibold text-gray-800 border-b pb-3 pt-2">Professional Details</h2>
+          <h2 className="text-xl font-semibold text-slate-800 border-b pb-3 pt-2">Professional Details</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Total Experience *" error={errors.total_experience}>
@@ -370,11 +370,11 @@ export default function CandidateForm() {
             </Field>
           </div>
 
-          <div className="flex items-center gap-3 bg-blue-50 rounded-lg p-4">
+          <div className="flex items-center gap-3 bg-indigo-50 rounded-lg p-4">
             <input type="checkbox" id="is_immediate_joiner" name="is_immediate_joiner"
               checked={form.is_immediate_joiner} onChange={handleChange}
-              className="w-5 h-5 accent-blue-600 cursor-pointer" />
-            <label htmlFor="is_immediate_joiner" className="text-gray-700 font-medium cursor-pointer">
+              className="w-5 h-5 accent-indigo-600 cursor-pointer" />
+            <label htmlFor="is_immediate_joiner" className="text-slate-700 font-medium cursor-pointer">
               I am an immediate joiner / can join within 15 days
             </label>
           </div>
@@ -383,7 +383,7 @@ export default function CandidateForm() {
             {form.skills.trim() && (
               <div className="flex flex-wrap gap-2 mb-2">
                 {form.skills.split(',').map(s => s.trim()).filter(Boolean).map(skill => (
-                  <span key={skill} className="flex items-center gap-1 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-medium">
+                  <span key={skill} className="flex items-center gap-1 bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-full text-xs font-medium">
                     {skill}
                     <button type="button"
                       onClick={() => {
@@ -391,7 +391,7 @@ export default function CandidateForm() {
                         setForm(updated)
                         if (submitAttempted || touched.skills) setErrors(prev => ({ ...prev, skills: validate(updated, resumeFile).skills }))
                       }}
-                      className="text-blue-400 hover:text-blue-700 leading-none ml-0.5">×</button>
+                      className="text-indigo-400 hover:text-indigo-700 leading-none ml-0.5">×</button>
                   </span>
                 ))}
               </div>
@@ -425,7 +425,7 @@ export default function CandidateForm() {
                 const matches = ALL_SKILLS.filter(s => s.toLowerCase().includes(q) && !added.includes(s.toLowerCase()))
                 if (!matches.length) return null
                 return (
-                  <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                  <div className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                     {matches.map(skill => (
                       <button key={skill} type="button"
                         onMouseDown={() => {
@@ -434,7 +434,7 @@ export default function CandidateForm() {
                           setSkillQuery('')
                           if (submitAttempted || touched.skills) setErrors(prev => ({ ...prev, skills: validate(updated, resumeFile).skills }))
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                        className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors">
                         {skill}
                       </button>
                     ))}
@@ -442,30 +442,30 @@ export default function CandidateForm() {
                 )
               })()}
             </div>
-            <p className="text-xs text-gray-400 mt-1">Search and select skills, or type them separated by commas</p>
+            <p className="text-xs text-slate-400 mt-1">Search and select skills, or type them separated by commas</p>
           </Field>
 
           <Field label="Resume * (PDF or DOCX, max 5 MB)" error={errors.resume}>
-            <div className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-colors ${errors.resume ? 'border-red-400 bg-red-50' : resumeFile ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-400'}`}>
+            <div className={`relative border-2 border-dashed rounded-lg p-4 text-center transition-colors ${errors.resume ? 'border-red-400 bg-red-50' : resumeFile ? 'border-indigo-400 bg-indigo-50' : 'border-slate-300 hover:border-indigo-400'}`}>
               <input type="file" accept=".pdf,.docx" onChange={handleFileChange}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
               {resumeFile ? (
-                <div className="flex items-center justify-center gap-2 text-blue-700">
+                <div className="flex items-center justify-center gap-2 text-indigo-700">
                   <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <span className="text-sm font-medium truncate max-w-[260px]">{resumeFile.name}</span>
                   <button type="button"
                     onClick={e => { e.stopPropagation(); setResumeFile(null); setErrors(v => ({ ...v, resume: undefined })) }}
-                    className="ml-1 text-gray-400 hover:text-red-500 shrink-0">✕</button>
+                    className="ml-1 text-slate-400 hover:text-red-500 shrink-0">✕</button>
                 </div>
               ) : (
-                <div className="text-gray-500 text-sm">
-                  <svg className="w-8 h-8 mx-auto mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="text-slate-500 text-sm">
+                  <svg className="w-8 h-8 mx-auto mb-1 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  <span className="font-medium text-blue-600">Click to upload</span> or drag and drop
-                  <p className="text-xs text-gray-400 mt-0.5">PDF or DOCX, up to 5 MB</p>
+                  <span className="font-medium text-indigo-600">Click to upload</span> or drag and drop
+                  <p className="text-xs text-slate-400 mt-0.5">PDF or DOCX, up to 5 MB</p>
                 </div>
               )}
             </div>
@@ -476,11 +476,11 @@ export default function CandidateForm() {
           )}
 
           <button type="submit" disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-3 rounded-lg transition-colors text-lg">
+            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-semibold py-3 rounded-lg transition-colors text-lg">
             {loading ? (uploadProgress || 'Submitting...') : 'Submit Application'}
           </button>
 
-          <p className="text-center text-xs text-gray-400">
+          <p className="text-center text-xs text-slate-400">
             Your information is confidential and will only be shared with relevant clients.
           </p>
         </form>
@@ -492,7 +492,7 @@ export default function CandidateForm() {
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <label className="text-sm font-medium text-slate-700">{label}</label>
       {children}
       {error && <p className="text-xs text-red-600 mt-0.5">{error}</p>}
     </div>
@@ -501,6 +501,6 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 
 function ic(error?: string) {
   return `border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent w-full bg-white ${
-    error ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-blue-500'
+    error ? 'border-red-400 focus:ring-red-400' : 'border-slate-300 focus:ring-indigo-500'
   }`
 }

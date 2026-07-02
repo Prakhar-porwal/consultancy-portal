@@ -105,16 +105,16 @@ export default function CandidateLogin() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <main className="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg px-10 py-12 max-w-md w-full">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <Link href="/"><Logo /></Link>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-slate-900">
             {step === 'email' ? 'View Available Jobs' : 'Enter Your Code'}
           </h1>
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="text-slate-500 text-sm mt-2">
             {step === 'email'
               ? 'Enter the email you used when submitting your profile'
               : `We sent a 6-digit code to ${email}`}
@@ -124,7 +124,7 @@ export default function CandidateLogin() {
         {step === 'email' ? (
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Email Address</label>
               <input
                 type="email"
                 value={email}
@@ -132,28 +132,28 @@ export default function CandidateLogin() {
                 placeholder="your@email.com"
                 required
                 autoFocus
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
             <button
               type="submit"
               disabled={loading || !email.trim()}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
             >
               {loading ? (
                 <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Sending code...</>
               ) : 'Send Code'}
             </button>
-            <p className="text-center text-xs text-gray-400">
+            <p className="text-center text-xs text-slate-400">
               Don&apos;t have a profile?{' '}
-              <Link href="/apply" className="text-blue-600 hover:underline font-medium">Submit your profile</Link>
+              <Link href="/apply" className="text-indigo-600 hover:underline font-medium">Submit your profile</Link>
             </p>
           </form>
         ) : (
           <form onSubmit={handleVerify} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3 text-center">6-digit code</label>
+              <label className="block text-sm font-medium text-slate-700 mb-3 text-center">6-digit code</label>
               <div className="flex gap-2 justify-center" onPaste={handleCodePaste}>
                 {code.map((digit, i) => (
                   <input
@@ -165,7 +165,7 @@ export default function CandidateLogin() {
                     value={digit}
                     onChange={e => handleCodeInput(i, e.target.value)}
                     onKeyDown={e => handleCodeKeyDown(i, e)}
-                    className="w-11 h-14 text-center text-xl font-bold border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                    className="w-11 h-14 text-center text-xl font-bold border-2 border-slate-300 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-colors"
                   />
                 ))}
               </div>
@@ -176,7 +176,7 @@ export default function CandidateLogin() {
             <button
               type="submit"
               disabled={loading || code.join('').length < 6}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
             >
               {loading ? (
                 <><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Verifying...</>
@@ -184,14 +184,14 @@ export default function CandidateLogin() {
             </button>
 
             <div className="flex items-center justify-between text-sm">
-              <button type="button" onClick={() => { setStep('email'); setCode(['','','','','','']); setError('') }} className="text-gray-400 hover:text-gray-600">
+              <button type="button" onClick={() => { setStep('email'); setCode(['','','','','','']); setError('') }} className="text-slate-400 hover:text-slate-600">
                 ← Change email
               </button>
               <button
                 type="button"
                 onClick={resend}
                 disabled={resendCooldown > 0 || loading}
-                className="text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline font-medium"
+                className="text-indigo-600 hover:underline disabled:text-slate-400 disabled:no-underline font-medium"
               >
                 {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}
               </button>

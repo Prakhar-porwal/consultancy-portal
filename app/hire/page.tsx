@@ -124,29 +124,29 @@ export default function HirePage() {
 
   if (submitted) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <main className="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg px-10 py-12 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
-            <svg className="w-8 h-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-5">
+            <svg className="w-8 h-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Requirement Received!</h2>
-          <p className="text-gray-500 leading-relaxed mb-2">
-            Thank you, <span className="font-semibold text-gray-700">{form.contact_name}</span>. We&apos;ve received your hiring requirement for{' '}
-            <span className="font-semibold text-gray-700">{form.job_title}</span>.
+          <h2 className="text-2xl font-bold text-slate-900 mb-3">Requirement Received!</h2>
+          <p className="text-slate-500 leading-relaxed mb-2">
+            Thank you, <span className="font-semibold text-slate-700">{form.contact_name}</span>. We&apos;ve received your hiring requirement for{' '}
+            <span className="font-semibold text-slate-700">{form.job_title}</span>.
           </p>
-          <p className="text-gray-400 text-sm leading-relaxed">
+          <p className="text-slate-400 text-sm leading-relaxed">
             Our team will review your requirement and get back to you with shortlisted candidates within <strong>48–72 hours</strong>.
           </p>
-          <div className="mt-8 pt-6 border-t border-gray-100 space-y-3">
-            <p className="text-xs text-gray-400">For urgent requirements, contact us directly:</p>
-            <a href="mailto:support@matchwork.in" className="text-sm font-medium text-blue-600 block hover:underline">
+          <div className="mt-8 pt-6 border-t border-slate-100 space-y-3">
+            <p className="text-xs text-slate-400">For urgent requirements, contact us directly:</p>
+            <a href="mailto:support@matchwork.in" className="text-sm font-medium text-indigo-600 block hover:underline">
               support@matchwork.in
             </a>
             <Link
               href="/"
-              className="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors mt-2"
+              className="inline-block w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors mt-2"
             >
               Back to Home
             </Link>
@@ -157,13 +157,13 @@ export default function HirePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4">
+    <main className="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 py-10 px-4">
       {/* Navbar */}
       <div className="max-w-2xl mx-auto mb-4 flex items-center justify-between">
         <Link href="/"><Logo /></Link>
         <Link
           href="/apply"
-          className="text-sm text-gray-500 hover:text-blue-600 transition-colors"
+          className="text-sm text-slate-500 hover:text-indigo-600 transition-colors"
         >
           Register as Candidate →
         </Link>
@@ -171,21 +171,21 @@ export default function HirePage() {
 
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 rounded-full px-4 py-1.5 text-sm font-medium mb-4">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
             For Companies / Employers
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Post a Hiring Requirement</h1>
-          <p className="text-gray-500 mt-2">
+          <h1 className="text-3xl font-bold text-slate-900">Post a Hiring Requirement</h1>
+          <p className="text-slate-500 mt-2">
             Tell us what you need — we&apos;ll deliver shortlisted candidates in <strong>48–72 hours</strong>.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
 
-          <h2 className="text-xl font-semibold text-gray-800 border-b pb-3">Company & Contact Details</h2>
+          <h2 className="text-xl font-semibold text-slate-800 border-b pb-3">Company & Contact Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <Field label="Company Name *" error={errors.company_name}>
@@ -211,7 +211,7 @@ export default function HirePage() {
             </Field>
           </div>
 
-          <h2 className="text-xl font-semibold text-gray-800 border-b pb-3 pt-2">Job Requirement Details</h2>
+          <h2 className="text-xl font-semibold text-slate-800 border-b pb-3 pt-2">Job Requirement Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <Field label="Job Title / Role *" error={errors.job_title}>
@@ -269,22 +269,22 @@ export default function HirePage() {
           )}
 
           <button type="submit" disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold py-3 rounded-lg transition-colors text-lg">
+            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-semibold py-3 rounded-lg transition-colors text-lg">
             {loading ? 'Submitting...' : 'Submit Hiring Requirement →'}
           </button>
 
-          <p className="text-center text-xs text-gray-400">
+          <p className="text-center text-xs text-slate-400">
             We will contact you within 24 hours. All information is kept strictly confidential.
           </p>
         </form>
 
-        <div className="mt-6 bg-blue-50 border border-blue-100 rounded-2xl p-5 flex gap-4 items-start">
-          <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="mt-6 bg-indigo-50 border border-indigo-100 rounded-2xl p-5 flex gap-4 items-start">
+          <svg className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <p className="text-sm font-semibold text-blue-800 mb-1">How does this work?</p>
-            <p className="text-xs text-blue-600 leading-relaxed">
+            <p className="text-sm font-semibold text-indigo-800 mb-1">How does this work?</p>
+            <p className="text-xs text-indigo-600 leading-relaxed">
               Once you submit this form, our team manually reviews your requirement and searches our candidate database. You&apos;ll receive shortlisted CVs via email within 48–72 hours. There are <strong>no upfront charges</strong> — you only pay upon successful placement.
             </p>
           </div>
@@ -297,7 +297,7 @@ export default function HirePage() {
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <label className="text-sm font-medium text-slate-700">{label}</label>
       {children}
       {error && <p className="text-xs text-red-600 mt-0.5">{error}</p>}
     </div>
@@ -306,6 +306,6 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 
 function ic(error?: string) {
   return `border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent w-full bg-white ${
-    error ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-blue-500'
+    error ? 'border-red-400 focus:ring-red-400' : 'border-slate-300 focus:ring-indigo-500'
   }`
 }
