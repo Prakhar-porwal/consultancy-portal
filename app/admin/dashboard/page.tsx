@@ -3,8 +3,10 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { supabase, type Candidate, type Client, type Job, type EmailLog, type HiringRequirement } from '@/lib/supabase'
+import Logo from '@/components/Logo'
 
 const STATUS_COLORS: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700',
@@ -387,69 +389,65 @@ export default function AdminDashboard() {
     placed: candidates.filter(c => c.status === 'placed').length,
   }
 
+  const tabBtn = (active: boolean) =>
+    `px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+      active ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+    }`
+
+  // Rendered in two places (inline on desktop, scrollable row on mobile);
+  // w-max keeps it from shrinking so the overflow-x-auto parent can scroll.
+  const tabBar = (
+    <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-max">
+      <button onClick={() => setActiveTab('candidates')} className={tabBtn(activeTab === 'candidates')}>
+        Candidates
+      </button>
+      <button onClick={() => setActiveTab('jobs')} className={tabBtn(activeTab === 'jobs')}>
+        Jobs
+        {jobs.filter(j => j.status === 'active').length > 0 && (
+          <span className="ml-1.5 bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded-full">
+            {jobs.filter(j => j.status === 'active').length}
+          </span>
+        )}
+      </button>
+      <button onClick={() => setActiveTab('clients')} className={tabBtn(activeTab === 'clients')}>
+        Clients
+        {clients.length > 0 && (
+          <span className="ml-1.5 bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">
+            {clients.length}
+          </span>
+        )}
+      </button>
+      <button onClick={() => setActiveTab('logs')} className={tabBtn(activeTab === 'logs')}>
+        Logs
+      </button>
+      <button onClick={() => setActiveTab('requirements')} className={tabBtn(activeTab === 'requirements')}>
+        Requirements
+        {requirements.filter(r => r.status === 'new').length > 0 && (
+          <span className="ml-1.5 bg-orange-100 text-orange-700 text-xs px-1.5 py-0.5 rounded-full">
+            {requirements.filter(r => r.status === 'new').length}
+          </span>
+        )}
+      </button>
+    </div>
+  )
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top nav */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">R</span>
-            </div>
-            <span className="font-semibold text-gray-900">matchwork</span>
-            <span className="text-gray-400 text-sm ml-1">/ Admin</span>
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Link href="/"><Logo /></Link>
+            <span className="text-gray-400 text-sm ml-1 hidden sm:inline">/ Admin</span>
           </div>
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 ml-2">
-            <button
-              onClick={() => setActiveTab('candidates')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'candidates' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              Candidates
-            </button>
-            <button
-              onClick={() => setActiveTab('jobs')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'jobs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              Jobs
-              {jobs.filter(j => j.status === 'active').length > 0 && (
-                <span className="ml-1.5 bg-green-100 text-green-700 text-xs px-1.5 py-0.5 rounded-full">
-                  {jobs.filter(j => j.status === 'active').length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('clients')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'clients' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              Clients
-              {clients.length > 0 && (
-                <span className="ml-1.5 bg-blue-100 text-blue-700 text-xs px-1.5 py-0.5 rounded-full">
-                  {clients.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('logs')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'logs' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              Logs
-            </button>
-            <button
-              onClick={() => setActiveTab('requirements')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'requirements' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-            >
-              Requirements
-              {requirements.filter(r => r.status === 'new').length > 0 && (
-                <span className="ml-1.5 bg-orange-100 text-orange-700 text-xs px-1.5 py-0.5 rounded-full">
-                  {requirements.filter(r => r.status === 'new').length}
-                </span>
-              )}
-            </button>
-          </div>
+          {/* Tabs inline on wide screens */}
+          <div className="hidden lg:block">{tabBar}</div>
+          <button onClick={handleSignOut} className="text-sm text-gray-500 hover:text-gray-800 transition-colors shrink-0">
+            Sign out
+          </button>
         </div>
-        <button onClick={handleSignOut} className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
-          Sign out
-        </button>
+        {/* Tabs on their own scrollable row on mobile / tablet */}
+        <div className="lg:hidden px-4 sm:px-6 pb-3 overflow-x-auto">{tabBar}</div>
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
