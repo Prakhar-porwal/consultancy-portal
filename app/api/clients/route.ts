@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { isAdmin } from '@/lib/adminAuth'
 
 function adminClient() {
   return createClient(
@@ -8,7 +9,10 @@ function adminClient() {
   )
 }
 
+const unauthorized = () => NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
 export async function POST(req: NextRequest) {
+  if (!(await isAdmin(req))) return unauthorized()
   const { name } = await req.json()
   if (!name?.trim()) return NextResponse.json({ error: 'Name is required.' }, { status: 400 })
   const { data, error } = await adminClient().from('clients').insert({ name: name.trim() }).select().single()
@@ -17,6 +21,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  if (!(await isAdmin(req))) return unauthorized()
   const { id, name } = await req.json()
   if (!id || !name?.trim()) return NextResponse.json({ error: 'id and name are required.' }, { status: 400 })
   const { data, error } = await adminClient().from('clients').update({ name: name.trim() }).eq('id', id).select().single()
@@ -25,6 +30,7 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!(await isAdmin(req))) return unauthorized()
   const { id } = await req.json()
   if (!id) return NextResponse.json({ error: 'id is required.' }, { status: 400 })
   const supabase = adminClient()

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 import { createClient } from '@supabase/supabase-js'
+import { isAdmin } from '@/lib/adminAuth'
 
 export const maxDuration = 60 // seconds — needed for PDF processing + SMTP
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
@@ -309,6 +310,8 @@ function buildHtml(candidates: Candidate[], clientName: string, customNote: stri
 
 export async function POST(req: NextRequest) {
   try {
+    if (!(await isAdmin(req))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
     const { candidates, toEmail, toName, subject, customNote } = await req.json() as {
       candidates: Candidate[]
       toEmail: string

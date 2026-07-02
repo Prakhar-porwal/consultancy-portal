@@ -85,6 +85,16 @@ export default function AdminDashboard() {
     if (!session) router.push('/admin/login')
   }, [router])
 
+  // Attaches the admin's Supabase access token so protected API routes
+  // (/api/logs, /api/clients, /api/send-email) can verify the caller.
+  async function authHeaders(): Promise<Record<string, string>> {
+    const { data: { session } } = await supabase.auth.getSession()
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.access_token ?? ''}`,
+    }
+  }
+
   const fetchData = useCallback(async () => {
     setLoading(true)
     const [{ data: cands }, { data: cls }, { data: jobRows }, { data: appRows }] = await Promise.all([
@@ -116,7 +126,7 @@ export default function AdminDashboard() {
 
   const fetchLogs = useCallback(async () => {
     setLogsLoading(true)
-    const res = await fetch('/api/logs')
+    const res = await fetch('/api/logs', { headers: await authHeaders() })
     const data = await res.json()
     setLogs(Array.isArray(data) ? data : [])
     setLogsLoading(false)
@@ -235,7 +245,7 @@ export default function AdminDashboard() {
     setClientError('')
     const res = await fetch('/api/clients', {
       method: editingClient ? 'PATCH' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body: JSON.stringify(editingClient ? { id: editingClient.id, name: clientName } : { name: clientName }),
     })
     const data = await res.json()
@@ -253,7 +263,7 @@ export default function AdminDashboard() {
     if (!confirm(`Delete client "${name}"? Candidates assigned to them will become unassigned.`)) return
     const res = await fetch('/api/clients', {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await authHeaders(),
       body: JSON.stringify({ id }),
     })
     if (!res.ok) return
@@ -332,7 +342,7 @@ export default function AdminDashboard() {
       const selected = candidates.filter(c => checkedIds.has(c.id))
       const res = await fetch('/api/send-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await authHeaders(),
         body: JSON.stringify({ candidates: selected, ...emailForm }),
       })
       const data = await res.json()
