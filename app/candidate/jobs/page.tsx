@@ -95,8 +95,8 @@ export default function CandidateJobs() {
         </div>
 
         {jobs.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
-            <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-12 text-center">
+            <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
@@ -107,7 +107,7 @@ export default function CandidateJobs() {
         ) : (
           <div className="space-y-4">
             {jobs.map(job => (
-              <div key={job.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+              <div key={job.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                 <button
                   onClick={() => setExpanded(expanded === job.id ? null : job.id)}
                   className="w-full text-left p-6 hover:bg-slate-50 transition-colors"
@@ -178,7 +178,7 @@ export default function CandidateJobs() {
                         <button
                           onClick={() => handleApply(job.id)}
                           disabled={applying === job.id}
-                          className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+                          className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-300 text-white font-bold py-2.5 rounded-xl text-sm shadow-lg shadow-indigo-500/30 transition-all flex items-center justify-center gap-2"
                         >
                           {applying === job.id ? (
                             <>

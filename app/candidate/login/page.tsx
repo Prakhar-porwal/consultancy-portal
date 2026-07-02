@@ -105,8 +105,8 @@ export default function CandidateLogin() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg px-10 py-12 max-w-md w-full">
+    <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 px-10 py-12 max-w-md w-full">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <Link href="/"><Logo /></Link>
