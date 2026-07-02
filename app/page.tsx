@@ -1,324 +1,329 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 
 export default function Home() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   return (
     <main className="min-h-screen bg-white font-sans">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+
+      {/* ── NAVBAR ── */}
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow">
-              <span className="text-white font-bold text-base">M</span>
-            </div>
-            <div>
-              <span className="font-bold text-gray-900 text-lg leading-none">matchwork</span>
-              <p className="text-xs text-gray-400 leading-none mt-0.5">Recruitment &amp; Staffing</p>
-            </div>
-          </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-gray-600">
-            <a href="#services" className="hover:text-blue-600 transition-colors">Services</a>
-            <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How It Works</a>
-            <a href="#contact" className="hover:text-blue-600 transition-colors">Contact</a>
+          <Logo />
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+            <a href="#how-it-works" className="hover:text-indigo-600 transition-colors">How It Works</a>
+            <a href="#services"     className="hover:text-indigo-600 transition-colors">Domains</a>
+            <a href="#why-us"       className="hover:text-indigo-600 transition-colors">Why Us</a>
+            <a href="#contact"      className="hover:text-indigo-600 transition-colors">Contact</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link
-              href="/apply"
-              className="text-sm text-gray-600 hover:text-blue-600 transition-colors hidden sm:block"
-            >
+            <Link href="/apply" className="hidden sm:block text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
               I&apos;m a Candidate
             </Link>
-            <Link
-              href="/hire"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm"
-            >
-              Post a Requirement
+            <Link href="/hire" className="hidden sm:block bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm">
+              Hire Talent →
             </Link>
+            <button
+              onClick={() => setMobileMenuOpen(o => !o)}
+              className="sm:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+              )}
+            </button>
           </div>
         </div>
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t border-slate-100 bg-white px-6 py-4 flex flex-col gap-4">
+            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">How It Works</a>
+            <a href="#services"     onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Domains</a>
+            <a href="#why-us"       onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Why Us</a>
+            <a href="#contact"      onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Contact</a>
+            <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+              <Link href="/apply" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">I&apos;m a Candidate</Link>
+              <Link href="/hire"  onClick={() => setMobileMenuOpen(false)} className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm text-center">Hire Talent →</Link>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white py-24 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-sm font-medium mb-8">
-            <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-            Specialized Engineering &amp; Technical Recruitment
-          </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-            We Connect the Right Talent<br />
-            <span className="text-blue-200">with the Right Company</span>
-          </h1>
-          <p className="text-blue-100 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
-            matchwork specializes in sourcing pre-screened engineering, QA/QC, and project management professionals — faster than any job portal.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/hire"
-              className="bg-white text-blue-700 font-bold px-8 py-4 rounded-xl hover:bg-blue-50 transition-colors text-base shadow-lg"
-            >
-              Post a Hiring Requirement →
-            </Link>
-            <Link
-              href="/apply"
-              className="border border-white/40 text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/10 transition-colors text-base"
-            >
-              Register as a Candidate
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="bg-gray-50 border-b border-gray-100 py-10 px-6">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {[
-            { value: '200+', label: 'Candidates in Database' },
-            { value: '30+', label: 'Companies Served' },
-            { value: '15 Days', label: 'Avg. Time to Hire' },
-            { value: '100%', label: 'Confidential Process' },
-          ].map(stat => (
-            <div key={stat.label}>
-              <div className="text-3xl font-bold text-blue-600">{stat.value}</div>
-              <div className="text-sm text-gray-500 mt-1">{stat.label}</div>
+      {/* ── HERO ── */}
+      <section className="relative bg-slate-950 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-violet-600/20 rounded-full blur-3xl" />
+        <div className="relative max-w-6xl mx-auto px-6 py-28 md:py-36">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-400/20 rounded-full px-4 py-1.5 text-sm font-medium text-indigo-300 mb-8">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+              Engineering &amp; Construction Recruitment
             </div>
-          ))}
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight tracking-tight mb-6">
+              The right engineer,<br />
+              <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
+                matched to you.
+              </span>
+            </h1>
+            <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
+              matchwork delivers pre-screened engineering talent directly to hiring companies — with confidential CVs, expert shortlists, and zero time wasted.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/hire" className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-4 rounded-2xl transition-all shadow-lg shadow-indigo-500/30 text-base">
+                Post a Hiring Requirement →
+              </Link>
+              <Link href="/apply" className="w-full sm:w-auto border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white font-semibold px-8 py-4 rounded-2xl transition-all text-base">
+                Register as a Candidate
+              </Link>
+            </div>
+          </div>
+          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+            {[
+              { value: '200+', label: 'Candidates ready' },
+              { value: '48 hrs', label: 'Avg. shortlist time' },
+              { value: '15 Days', label: 'Avg. time to hire' },
+              { value: '100%', label: 'Confidential process' },
+            ].map(s => (
+              <div key={s.label} className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center backdrop-blur-sm">
+                <div className="text-3xl font-extrabold text-white">{s.value}</div>
+                <div className="text-xs text-slate-400 mt-1">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Services */}
-      <section id="services" className="py-20 px-6">
+      {/* ── HOW IT WORKS ── */}
+      <section id="how-it-works" className="py-24 px-6 bg-slate-50">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold text-gray-900">Our Hiring Specializations</h2>
-            <p className="text-gray-500 mt-3 max-w-xl mx-auto">We maintain a curated pool of verified professionals across key engineering domains.</p>
+          <div className="text-center mb-16">
+            <p className="text-indigo-600 font-semibold text-sm uppercase tracking-widest mb-3">Process</p>
+            <h2 className="text-4xl font-extrabold text-slate-900">How matchwork delivers talent</h2>
+            <p className="text-slate-500 mt-4 max-w-xl mx-auto">A simple, fast, and fully managed hiring pipeline — from requirement to joining.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                icon: (
-                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                ),
-                title: 'Civil & Structural',
-                skills: ['AutoCAD & Revit', 'STAAD Pro / ETABS', 'Structural & RCC Design', 'Road & Highway Eng.', 'Geotechnical Eng.'],
+                step: '01', color: 'bg-indigo-600', title: 'Share Your Requirement',
+                desc: 'Tell us the role, domain, experience, and budget. A one-page JD or a quick call works perfectly.',
+                icon: <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
               },
               {
-                icon: (
-                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                ),
-                title: 'QA / QC',
-                skills: ['Quality Assurance', 'NDT Inspection', 'Material Testing', 'IS / IRC Codes', 'ITP & Method Statements'],
+                step: '02', color: 'bg-violet-600', title: 'We Shortlist & Screen',
+                desc: 'Our team searches our curated database, screens candidates, and prepares a professional summary within 48 hours.',
+                icon: <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
               },
               {
-                icon: (
-                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                ),
-                title: 'Electrical & MEP',
-                skills: ['PLC / SCADA / HMI', 'Panel & Switchgear Design', 'Power Distribution', 'MEP Coordination', 'Instrumentation & DCS'],
+                step: '03', color: 'bg-emerald-600', title: 'Interview & Hire',
+                desc: 'Select who you like, we coordinate interviews, handle negotiations, and track joining — all with zero effort from you.',
+                icon: <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
               },
-              {
-                icon: (
-                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                ),
-                title: 'Project Management',
-                skills: ['Primavera P6 / MS Project', 'BOQ & Estimation', 'Contract Management', 'Site Supervision', 'Quantity Surveying'],
-              },
-              {
-                icon: (
-                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                ),
-                title: 'Senior Leadership',
-                skills: ['Project Directors', 'GM / DGM Level', 'Department Heads', 'Cluster Managers', 'VP / AVP Roles'],
-              },
-              {
-                icon: (
-                  <svg className="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                ),
-                title: 'Urgent / Niche Hiring',
-                skills: ['Immediate Joiners', 'Contract Staffing', 'Bulk Hiring', 'Pan-India Placement', 'Confidential Search'],
-              },
-            ].map(service => (
-              <div key={service.title} className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md hover:border-blue-200 transition-all">
-                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
-                  {service.icon}
+            ].map(item => (
+              <div key={item.step} className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 relative overflow-hidden group hover:shadow-md transition-shadow">
+                <div className="absolute top-6 right-6 text-6xl font-black text-slate-50 group-hover:text-slate-100 transition-colors select-none">{item.step}</div>
+                <div className={`w-12 h-12 ${item.color} rounded-2xl flex items-center justify-center mb-6 shadow-lg`}>{item.icon}</div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
+                <p className="text-slate-500 leading-relaxed text-sm">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── ZIGZAG FEATURES ── */}
+      <section id="services" className="py-24 px-6">
+        <div className="max-w-5xl mx-auto space-y-28">
+
+          {/* Feature 1 */}
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div>
+              <p className="text-indigo-600 font-semibold text-sm uppercase tracking-widest mb-3">Shortlisting</p>
+              <h2 className="text-4xl font-extrabold text-slate-900 leading-tight mb-5">2–5 curated profiles,<br />not 500 random CVs.</h2>
+              <p className="text-slate-500 leading-relaxed mb-6">Every candidate we send has been reviewed by a domain expert. You only see people who genuinely fit — saving hours of screening time.</p>
+              <ul className="space-y-3">
+                {['Skills & experience verified', 'CTC within your budget', 'Notice period aligned', 'Recommendation note included'].map(item => (
+                  <li key={item} className="flex items-center gap-3 text-slate-700 text-sm font-medium">
+                    <span className="w-5 h-5 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-slate-950 rounded-3xl p-6 shadow-2xl">
+              <div className="text-xs text-slate-500 font-mono mb-4">Candidate shortlist · Today</div>
+              {[
+                { name: 'Arjun Sharma', role: 'Site Engineer', exp: '7 yrs', ctc: '₹12–15 LPA', tag: 'Available Now', dot: 'bg-emerald-400' },
+                { name: 'Priya Mehta', role: 'QA/QC Engineer', exp: '5 yrs', ctc: '₹9–11 LPA', tag: '30-day notice', dot: 'bg-amber-400' },
+              ].map(c => (
+                <div key={c.name} className="bg-slate-800 rounded-2xl p-4 mb-3 border border-slate-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <div className="text-white font-semibold text-sm">{c.name}</div>
+                      <div className="text-slate-400 text-xs">{c.role} · {c.exp}</div>
+                    </div>
+                    <span className="text-indigo-400 font-bold text-sm">{c.ctc}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 ${c.dot} rounded-full`} />
+                    <span className="text-slate-400 text-xs">{c.tag}</span>
+                  </div>
                 </div>
-                <h3 className="font-bold text-gray-900 text-lg mb-3">{service.title}</h3>
-                <ul className="space-y-1.5">
-                  {service.skills.map(s => (
-                    <li key={s} className="flex items-center gap-2 text-sm text-gray-600">
-                      <svg className="w-4 h-4 text-blue-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      {s}
-                    </li>
-                  ))}
+              ))}
+              <div className="mt-4 bg-indigo-600/20 border border-indigo-500/30 rounded-xl p-3 text-xs text-indigo-300">
+                📎 Redacted CVs attached · 2 candidates
+              </div>
+            </div>
+          </div>
+
+          {/* Feature 2 — reversed */}
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div className="order-2 md:order-1 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-3xl p-8 border border-indigo-100">
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { icon: '🔒', title: 'Contact Redacted', desc: 'Phone & email stripped from every CV automatically' },
+                  { icon: '💧', title: 'Watermarked', desc: 'Confidential watermark on all shared documents' },
+                  { icon: '📋', title: 'Full Audit Log', desc: 'Every delivery tracked — who got which CV and when' },
+                  { icon: '🤝', title: 'You Stay Central', desc: 'Clients reach candidates only through you' },
+                ].map(f => (
+                  <div key={f.title} className="bg-white rounded-2xl p-4 shadow-sm">
+                    <div className="text-2xl mb-2">{f.icon}</div>
+                    <div className="text-slate-900 font-semibold text-sm mb-1">{f.title}</div>
+                    <div className="text-slate-500 text-xs">{f.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="order-1 md:order-2">
+              <p className="text-violet-600 font-semibold text-sm uppercase tracking-widest mb-3">Confidentiality</p>
+              <h2 className="text-4xl font-extrabold text-slate-900 leading-tight mb-5">Your recruitment<br />stays protected.</h2>
+              <p className="text-slate-500 leading-relaxed">Candidate contact details are automatically removed before CVs reach your clients — so every placement goes through you. No bypassing, no lost fees.</p>
+            </div>
+          </div>
+
+          {/* Feature 3 */}
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div>
+              <p className="text-emerald-600 font-semibold text-sm uppercase tracking-widest mb-3">Specialisation</p>
+              <h2 className="text-4xl font-extrabold text-slate-900 leading-tight mb-5">Built for engineering<br />&amp; construction.</h2>
+              <p className="text-slate-500 leading-relaxed mb-6">We understand your domain. Our team speaks BOQ, P6, STAAD Pro, IS codes — so candidates are screened for what actually matters.</p>
+              <div className="grid grid-cols-2 gap-3">
+                {['Civil & Structural', 'QA / QC', 'Electrical & MEP', 'Project Controls', 'Contracts & QS', 'Senior Leadership'].map(d => (
+                  <div key={d} className="flex items-center gap-2 text-sm text-slate-700 font-medium">
+                    <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
+                    {d}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-slate-950 rounded-3xl p-6 shadow-2xl">
+              <div className="text-xs text-slate-500 font-mono mb-5">Active candidate pool</div>
+              {[
+                { domain: 'Civil & Structural', count: 80, pct: 100, color: 'bg-indigo-500' },
+                { domain: 'QA / QC', count: 55, pct: 69, color: 'bg-violet-500' },
+                { domain: 'Electrical & MEP', count: 40, pct: 50, color: 'bg-emerald-500' },
+                { domain: 'Project Controls', count: 30, pct: 37, color: 'bg-amber-500' },
+              ].map(d => (
+                <div key={d.domain} className="mb-4">
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-slate-300 font-medium">{d.domain}</span>
+                    <span className="text-slate-500">{d.count}+ candidates</span>
+                  </div>
+                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div className={`h-full ${d.color} rounded-full`} style={{ width: `${d.pct}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── WHY MATCHWORK ── */}
+      <section id="why-us" className="py-24 px-6 bg-slate-950 text-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-indigo-400 font-semibold text-sm uppercase tracking-widest mb-3">Why Us</p>
+            <h2 className="text-4xl font-extrabold">Why companies choose matchwork</h2>
+            <p className="text-slate-400 mt-4 max-w-xl mx-auto">We&apos;re not a job portal. We&apos;re your dedicated recruitment partner.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { icon: '⚡', border: 'border-indigo-500/20 bg-indigo-500/5',  accent: 'text-indigo-300',  title: 'Speed',         sub: '48-hour shortlists',     desc: 'Profiles on your desk within 2 business days of sharing the requirement.' },
+              { icon: '🎯', border: 'border-violet-500/20 bg-violet-500/5',  accent: 'text-violet-300',  title: 'Precision',     sub: 'Only fits, no fillers',   desc: 'Every candidate we share genuinely matches your requirement — no bulk dumps.' },
+              { icon: '🔒', border: 'border-emerald-500/20 bg-emerald-500/5',accent: 'text-emerald-300', title: 'Confidentiality',sub: 'Process stays clean',     desc: 'Auto-redacted CVs, single-channel communication, zero cold calls.' },
+              { icon: '🏗️', border: 'border-amber-500/20 bg-amber-500/5',   accent: 'text-amber-300',   title: 'Domain Depth',  sub: 'We speak your language',  desc: 'Our team knows BOQ, STAAD Pro, P6 — screened on what matters.' },
+              { icon: '📊', border: 'border-pink-500/20 bg-pink-500/5',      accent: 'text-pink-300',    title: 'Transparency',  sub: 'Full delivery log',       desc: 'Track every candidate we\'ve sent — no confusion, full accountability.' },
+              { icon: '🤝', border: 'border-cyan-500/20 bg-cyan-500/5',      accent: 'text-cyan-300',    title: 'Partnership',   sub: 'Long-term relationship',  desc: 'Whether you hire 1 or 100 — our process scales and commitment stays.' },
+            ].map(card => (
+              <div key={card.title} className={`border ${card.border} rounded-2xl p-6`}>
+                <div className="text-3xl mb-4">{card.icon}</div>
+                <h3 className="text-white font-bold text-lg">{card.title}</h3>
+                <p className={`text-xs font-semibold mt-0.5 mb-3 ${card.accent}`}>{card.sub}</p>
+                <p className="text-slate-400 text-sm leading-relaxed">{card.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section id="contact" className="py-24 px-6 bg-gradient-to-br from-indigo-600 to-violet-700 text-white">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">Ready to find your next great hire?</h2>
+          <p className="text-indigo-200 text-lg mb-10">Share your requirement today — we&apos;ll deliver a shortlist within 48 hours.</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/hire"  className="w-full sm:w-auto bg-white text-indigo-700 font-bold px-8 py-4 rounded-2xl hover:bg-indigo-50 transition-colors shadow-lg text-base">Post a Requirement →</Link>
+            <Link href="/apply" className="w-full sm:w-auto border border-white/40 text-white font-semibold px-8 py-4 rounded-2xl hover:bg-white/10 transition-colors text-base">I&apos;m a Candidate</Link>
+          </div>
+          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6 text-indigo-200 text-sm">
+            <a href="tel:+919667710275"          className="flex items-center gap-2 hover:text-white transition-colors">📞 +91 96677 10275</a>
+            <a href="mailto:support@matchwork.in" className="flex items-center gap-2 hover:text-white transition-colors">✉️ support@matchwork.in</a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="bg-slate-950 text-slate-400 py-12 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between gap-10 mb-12">
+            <div className="max-w-xs">
+              <Logo light />
+              <p className="text-slate-500 text-sm mt-4 leading-relaxed">Specialist recruitment for engineering &amp; construction. Pre-screened talent, delivered fast.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-8 text-sm">
+              <div>
+                <h4 className="text-slate-200 font-semibold mb-4">Company</h4>
+                <ul className="space-y-2.5">
+                  <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
+                  <li><a href="#services"     className="hover:text-white transition-colors">Domains</a></li>
+                  <li><a href="#why-us"       className="hover:text-white transition-colors">Why matchwork</a></li>
                 </ul>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section id="how-it-works" className="bg-gray-50 py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold text-gray-900">How It Works for You</h2>
-            <p className="text-gray-500 mt-3">Simple 3-step process — no job portal complexity, no wasted time.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                step: '01',
-                title: 'Share Your Requirement',
-                desc: 'Fill a simple form telling us what role you need, how many positions, experience required, and your timeline.',
-              },
-              {
-                step: '02',
-                title: 'We Screen & Shortlist',
-                desc: 'We search our database of pre-registered candidates and personally screen profiles matching your exact criteria.',
-              },
-              {
-                step: '03',
-                title: 'You Interview & Hire',
-                desc: 'We send you shortlisted CVs within 48–72 hours. You interview and hire. We handle the coordination.',
-              },
-            ].map(item => (
-              <div key={item.step} className="text-center">
-                <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-md">
-                  <span className="text-white font-bold text-lg">{item.step}</span>
-                </div>
-                <h3 className="font-bold text-gray-900 text-lg mb-2">{item.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+              <div>
+                <h4 className="text-slate-200 font-semibold mb-4">Get Started</h4>
+                <ul className="space-y-2.5">
+                  <li><Link href="/hire"  className="hover:text-white transition-colors">Post a Requirement</Link></li>
+                  <li><Link href="/apply" className="hover:text-white transition-colors">Register as Candidate</Link></li>
+                  <li><a href="mailto:support@matchwork.in" className="hover:text-white transition-colors">Contact Us</a></li>
+                </ul>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Why matchwork */}
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold text-gray-900">Why Choose matchwork Over Job Portals?</h2>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            {[
-              {
-                title: 'No Subscription Fees',
-                desc: 'You pay only on successful placement — no monthly portal charges or posting fees.',
-                icon: '💰',
-              },
-              {
-                title: 'Pre-Screened Profiles Only',
-                desc: 'Every candidate in our database has been interviewed and verified before we share their profile with you.',
-                icon: '✅',
-              },
-              {
-                title: 'Faster Turnaround',
-                desc: 'We typically deliver shortlisted candidates in 48–72 hours vs weeks of waiting on job portals.',
-                icon: '⚡',
-              },
-              {
-                title: 'Sector Specialized',
-                desc: 'We specialize in engineering, construction, and infrastructure — not a generic "all jobs" portal.',
-                icon: '🎯',
-              },
-            ].map(item => (
-              <div key={item.title} className="flex gap-4 bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-shadow">
-                <div className="text-3xl shrink-0">{item.icon}</div>
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-1">{item.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Banner */}
-      <section className="bg-blue-600 py-16 px-6 text-white text-center">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl font-bold mb-4">Ready to Hire the Right Person?</h2>
-          <p className="text-blue-100 mb-8 text-lg">Share your requirement and we&apos;ll get back to you within 24 hours.</p>
-          <Link
-            href="/hire"
-            className="inline-block bg-white text-blue-700 font-bold px-10 py-4 rounded-xl hover:bg-blue-50 transition-colors text-base shadow-lg"
-          >
-            Post a Hiring Requirement →
-          </Link>
-        </div>
-      </section>
-
-      {/* Contact */}
-      <section id="contact" className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">Get in Touch</h2>
-            <p className="text-gray-500 mt-3">Have questions? We&apos;d love to hear from you.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6 text-center">
-            <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div className="font-semibold text-gray-900 text-sm mb-1">Email</div>
-              <a href="mailto:support@matchwork.in" className="text-blue-600 text-sm hover:underline">support@matchwork.in</a>
-            </div>
-            <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-              </div>
-              <div className="font-semibold text-gray-900 text-sm mb-1">Phone / WhatsApp</div>
-              <a href="tel:+919667710275" className="text-blue-600 text-sm hover:underline">+91 96677 10275</a>
-            </div>
-            <div className="bg-gray-50 rounded-2xl p-6">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <div className="font-semibold text-gray-900 text-sm mb-1">Location</div>
-              <span className="text-gray-500 text-sm">India (Pan-India Placement)</span>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-10 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">M</span>
-            </div>
-            <span className="text-white font-semibold">matchwork</span>
-          </div>
-          <p className="text-sm text-center">© {new Date().getFullYear()} matchwork. All rights reserved.</p>
-          <div className="flex items-center gap-6 text-sm">
-            <Link href="/apply" className="hover:text-white transition-colors">Candidates</Link>
-            <Link href="/hire" className="hover:text-white transition-colors">Companies</Link>
-            <Link href="/admin/login" className="hover:text-white transition-colors">Admin</Link>
+          <div className="border-t border-slate-800 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-sm">© {new Date().getFullYear()} matchwork. All rights reserved.</p>
+            <p className="text-sm">matchwork.in · Recruitment &amp; Staffing</p>
           </div>
         </div>
       </footer>
+
     </main>
   )
 }

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import Logo from '@/components/Logo'
 
 const EXPERIENCE_OPTIONS = [
   '1-2 years', '2-4 years', '4-6 years', '6-8 years', '8-10 years',
@@ -159,12 +160,7 @@ export default function HirePage() {
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4">
       {/* Navbar */}
       <div className="max-w-2xl mx-auto mb-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="font-semibold text-gray-800">matchwork</span>
-        </Link>
+        <Link href="/"><Logo /></Link>
         <Link
           href="/apply"
           className="text-sm text-gray-500 hover:text-blue-600 transition-colors"

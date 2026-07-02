@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase, type Job } from '@/lib/supabase'
+import Logo from '@/components/Logo'
 
 export default function CandidateJobs() {
   const router = useRouter()
@@ -72,10 +73,7 @@ export default function CandidateJobs() {
     <main className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="font-semibold text-gray-900">matchwork</span>
+          <Logo />
           <span className="text-gray-400 text-sm ml-1">/ Jobs</span>
         </div>
         <div className="flex items-center gap-4">

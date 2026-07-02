@@ -3,7 +3,9 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useRef, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import Logo from '@/components/Logo'
 
 export default function CandidateLogin() {
   const router = useRouter()
@@ -106,8 +108,8 @@ export default function CandidateLogin() {
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg px-10 py-12 max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-lg">R</span>
+          <div className="flex justify-center mb-4">
+            <Link href="/"><Logo /></Link>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">
             {step === 'email' ? 'View Available Jobs' : 'Enter Your Code'}
@@ -145,7 +147,7 @@ export default function CandidateLogin() {
             </button>
             <p className="text-center text-xs text-gray-400">
               Don&apos;t have a profile?{' '}
-              <a href="/" className="text-blue-600 hover:underline font-medium">Submit your profile</a>
+              <Link href="/apply" className="text-blue-600 hover:underline font-medium">Submit your profile</Link>
             </p>
           </form>
         ) : (

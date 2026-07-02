@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import Logo from '@/components/Logo'
 
 const NOTICE_PERIOD_OPTIONS = [
   'Immediate',
@@ -267,12 +268,7 @@ export default function CandidateForm() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4">
       <div className="max-w-2xl mx-auto mb-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="font-semibold text-gray-800">matchwork</span>
-        </Link>
+        <Link href="/"><Logo /></Link>
         <Link
           href="/candidate/login"
           className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-colors"
