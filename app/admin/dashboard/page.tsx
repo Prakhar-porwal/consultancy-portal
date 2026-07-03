@@ -21,6 +21,7 @@ const STATUS_OPTIONS = ['new', 'screening', 'shortlisted', 'rejected', 'placed']
 const INITIAL_EMAIL = {
   toEmail: '',
   toName: '',
+  cc: '',
   subject: 'Candidate Profiles — matchwork',
   customNote: '',
 }
@@ -1300,6 +1301,18 @@ export default function AdminDashboard() {
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">CC <span className="text-slate-400 font-normal">(optional)</span></label>
+                <input
+                  type="text"
+                  value={emailForm.cc}
+                  onChange={e => setEmailForm(f => ({ ...f, cc: e.target.value }))}
+                  placeholder="colleague@matchwork.in, another@company.com"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <p className="text-xs text-slate-400 mt-1">Separate multiple emails with commas.</p>
               </div>
 
               <div>

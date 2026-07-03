@@ -312,17 +312,24 @@ export async function POST(req: NextRequest) {
   try {
     if (!(await isAdmin(req))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { candidates, toEmail, toName, subject, customNote } = await req.json() as {
+    const { candidates, toEmail, toName, subject, customNote, cc } = await req.json() as {
       candidates: Candidate[]
       toEmail: string
       toName: string
       subject: string
       customNote: string
+      cc?: string
     }
 
     if (!candidates?.length || !toEmail) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
     }
+
+    // CC may be a comma/semicolon-separated list; clean it into an array
+    const ccList = (cc ?? '')
+      .split(/[,;]/)
+      .map(e => e.trim())
+      .filter(Boolean)
 
     const transporter = nodemailer.createTransport({
       host: 'smtpout.secureserver.net',
@@ -358,6 +365,7 @@ export async function POST(req: NextRequest) {
     await transporter.sendMail({
       from: `matchwork <${process.env.SMTP_USER}>`,
       to: `${toName} <${toEmail}>`,
+      ...(ccList.length ? { cc: ccList } : {}),
       subject,
       html: buildHtml(candidates, toName, customNote),
       attachments,
