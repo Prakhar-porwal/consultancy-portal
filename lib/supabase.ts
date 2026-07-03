@@ -48,6 +48,7 @@ export type Candidate = {
 export type Client = {
   id: string
   name: string
+  email: string | null
   created_at: string
 }
 

@@ -13,11 +13,14 @@
 -- 1. TABLES
 -- ─────────────────────────────────────────────────────────────────────────
 
--- Clients (created first — candidates references it)
+-- Clients / companies (created first — candidates references it).
+-- email + password_hash power the client portal login (see add_client_portal.sql).
 create table if not exists public.clients (
-  id          uuid primary key default gen_random_uuid(),
-  name        text not null,
-  created_at  timestamptz not null default now()
+  id             uuid primary key default gen_random_uuid(),
+  name           text not null,
+  email          text,
+  password_hash  text,
+  created_at     timestamptz not null default now()
 );
 
 -- Candidates (the /apply form)

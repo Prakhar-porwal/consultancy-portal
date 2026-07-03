@@ -76,6 +76,7 @@ export default function AdminDashboard() {
   const [showClientModal, setShowClientModal] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [clientName, setClientName] = useState('')
+  const [clientEmail, setClientEmail] = useState('')
   const [clientSaving, setClientSaving] = useState(false)
   const [clientError, setClientError] = useState('')
 
@@ -102,7 +103,7 @@ export default function AdminDashboard() {
     setLoading(true)
     const [{ data: cands }, { data: cls }, { data: jobRows }, { data: appRows }] = await Promise.all([
       supabase.from('candidates').select('*').order('created_at', { ascending: false }),
-      supabase.from('clients').select('*').order('name'),
+      supabase.from('clients').select('id, name, email, created_at').order('name'),
       supabase.from('jobs').select('id, title'),
       supabase.from('job_applications').select('candidate_email, job_id'),
     ])
@@ -231,6 +232,7 @@ export default function AdminDashboard() {
   function openNewClient() {
     setEditingClient(null)
     setClientName('')
+    setClientEmail('')
     setClientError('')
     setShowClientModal(true)
   }
@@ -238,6 +240,7 @@ export default function AdminDashboard() {
   function openEditClient(client: Client) {
     setEditingClient(client)
     setClientName(client.name)
+    setClientEmail(client.email ?? '')
     setClientError('')
     setShowClientModal(true)
   }
@@ -246,15 +249,18 @@ export default function AdminDashboard() {
     if (!clientName.trim()) { setClientError('Client name is required.'); return }
     setClientSaving(true)
     setClientError('')
+    const payload = editingClient
+      ? { id: editingClient.id, name: clientName, email: clientEmail }
+      : { name: clientName, email: clientEmail }
     const res = await fetch('/api/clients', {
       method: editingClient ? 'PATCH' : 'POST',
       headers: await authHeaders(),
-      body: JSON.stringify(editingClient ? { id: editingClient.id, name: clientName } : { name: clientName }),
+      body: JSON.stringify(payload),
     })
     const data = await res.json()
     if (!res.ok) { setClientError(data.error ?? 'Failed to save.'); setClientSaving(false); return }
     if (editingClient) {
-      setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, name: clientName.trim() } : c))
+      setClients(prev => prev.map(c => c.id === editingClient.id ? data : c))
     } else {
       setClients(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)))
     }
@@ -724,7 +730,12 @@ export default function AdminDashboard() {
                           {client.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-slate-900 truncate">{client.name}</p>
+                          <p className="font-semibold text-slate-900 truncate">
+                            {client.name}
+                            {client.email
+                              ? <span className="ml-2 text-xs font-normal text-indigo-500">🔑 {client.email}</span>
+                              : <span className="ml-2 text-xs font-normal text-slate-300">no portal login</span>}
+                          </p>
                           <p className="text-sm text-slate-400 mt-0.5">
                             {assigned.length} candidate{assigned.length !== 1 ? 's' : ''} assigned
                             {assigned.length > 0 && (
@@ -1082,6 +1093,18 @@ export default function AdminDashboard() {
                   autoFocus
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Portal Login Email <span className="text-slate-400 font-normal">(optional)</span></label>
+                <input
+                  type="email"
+                  value={clientEmail}
+                  onChange={e => setClientEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && saveClient()}
+                  placeholder="hr@company.com"
+                  className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <p className="text-xs text-slate-400 mt-1">The company logs into their portal with this email to view their assigned candidates.</p>
               </div>
               {clientError && (
                 <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{clientError}</p>

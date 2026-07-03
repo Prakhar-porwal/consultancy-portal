@@ -24,6 +24,9 @@ export default function Home() {
             <Link href="/apply" className="hidden sm:block text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
               I&apos;m a Candidate
             </Link>
+            <Link href="/company/login" className="hidden sm:block text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+              Company Login
+            </Link>
             <Link href="/hire" className="hidden sm:block bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm">
               Hire Talent →
             </Link>
@@ -48,6 +51,7 @@ export default function Home() {
             <a href="#contact"      onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Contact</a>
             <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
               <Link href="/apply" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">I&apos;m a Candidate</Link>
+              <Link href="/company/login" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Company Login</Link>
               <Link href="/hire"  onClick={() => setMobileMenuOpen(false)} className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm text-center">Hire Talent →</Link>
             </div>
           </div>
