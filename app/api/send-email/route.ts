@@ -377,12 +377,17 @@ export async function POST(req: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!,
       )
-      await admin.from('email_logs').insert({
+      const baseRow = {
         to_email: toEmail,
         to_name: toName,
         subject,
         candidates: candidates.map(c => ({ id: c.id, name: c.full_name })),
-      })
+      }
+      const cc = ccList.length ? ccList.join(', ') : null
+      const { error } = await admin.from('email_logs').insert({ ...baseRow, cc })
+      // Fallback: if the `cc` column doesn't exist yet (migration not applied),
+      // still record the send without it so logging never silently breaks.
+      if (error) await admin.from('email_logs').insert(baseRow)
     } catch { /* ignore logging errors */ }
 
     return NextResponse.json({ success: true })

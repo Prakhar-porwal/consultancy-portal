@@ -56,6 +56,7 @@ export type EmailLog = {
   sent_at: string
   to_email: string
   to_name: string
+  cc: string | null
   subject: string | null
   candidates: { id: string; name: string }[]
 }

@@ -93,6 +93,7 @@ create table if not exists public.email_logs (
   sent_at     timestamptz not null default now(),
   to_email    text,
   to_name     text,
+  cc          text,
   subject     text,
   candidates  jsonb
 );

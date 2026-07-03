@@ -562,7 +562,7 @@ export default function AdminDashboard() {
               {logs.length > 0 && (
                 <button
                   onClick={() => {
-                    const headers = ['Date', 'Time', 'Sent To', 'Email', 'Candidates', 'Assigned Client', 'Subject']
+                    const headers = ['Date', 'Time', 'Sent To', 'Email', 'CC', 'Candidates', 'Assigned Client', 'Subject']
                     const rows = logs.map(log => {
                       const candidateNames = log.candidates.map(c => c.name).join('; ')
                       const assignedClients = log.candidates.map(c => {
@@ -574,6 +574,7 @@ export default function AdminDashboard() {
                         new Date(log.sent_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
                         log.to_name,
                         log.to_email,
+                        log.cc ?? '',
                         candidateNames,
                         assignedClients || 'Unassigned',
                         log.subject ?? '',
@@ -611,7 +612,7 @@ export default function AdminDashboard() {
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 border-b border-slate-200">
                       <tr>
-                        {['Date & Time', 'Sent To', 'Candidates', 'Assigned Client', 'Subject'].map(h => (
+                        {['Date & Time', 'Sent To', 'CC', 'Candidates', 'Assigned Client', 'Subject'].map(h => (
                           <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
@@ -635,6 +636,19 @@ export default function AdminDashboard() {
                             <td className="px-4 py-3">
                               <div className="font-medium text-slate-800">{log.to_name}</div>
                               <div className="text-xs text-slate-400">{log.to_email}</div>
+                            </td>
+                            <td className="px-4 py-3 align-top">
+                              {log.cc ? (
+                                <div className="flex flex-wrap gap-1 max-w-[200px]">
+                                  {log.cc.split(',').map(e => e.trim()).filter(Boolean).map(email => (
+                                    <span key={email} className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap">
+                                      {email}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-slate-300">—</span>
+                              )}
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex flex-wrap gap-1">
