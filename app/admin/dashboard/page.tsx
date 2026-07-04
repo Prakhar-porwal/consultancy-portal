@@ -311,7 +311,7 @@ export default function AdminDashboard() {
   }
 
   function exportCSV() {
-    const headers = ['Name', 'Email', 'Phone', 'Company', 'Current CTC', 'Expected CTC', 'Notice Period', 'Immediate Joiner', 'Experience', 'Skills', 'Location', 'Status', 'Client', 'Submitted On']
+    const headers = ['Name', 'Email', 'Phone', 'Company', 'Current CTC', 'Expected CTC', 'Notice Period', 'Immediate Joiner', 'Experience', 'Skills', 'Location', 'Status', 'Client', 'Client Decision', 'Submitted On']
     const rows = filtered.map(c => [
       c.full_name, c.email, c.phone, c.current_company ?? '',
       c.current_ctc, c.expected_ctc, c.notice_period,
@@ -319,6 +319,7 @@ export default function AdminDashboard() {
       c.total_experience, c.skills, c.current_location,
       c.status,
       clients.find(cl => cl.id === c.client_id)?.name ?? 'Unassigned',
+      c.client_id ? clientDecisionLabel(c.client_status) : '',
       new Date(c.created_at).toLocaleDateString('en-IN'),
     ])
     const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
@@ -974,7 +975,7 @@ export default function AdminDashboard() {
                         title="Select all"
                       />
                     </th>
-                    {['Name', 'Contact', 'Experience', 'CTC (Current → Expected)', 'Notice Period', 'Skills', 'Resume', 'Applied For', 'Client', 'Status', 'Date'].map(h => (
+                    {['Name', 'Contact', 'Experience', 'CTC (Current → Expected)', 'Notice Period', 'Skills', 'Resume', 'Applied For', 'Client', 'Client Decision', 'Status', 'Date'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -1050,13 +1051,15 @@ export default function AdminDashboard() {
                           <option value="">Unassigned</option>
                           {clients.map(cl => <option key={cl.id} value={cl.id}>{cl.name}</option>)}
                         </select>
-                        {c.client_id && c.client_status && c.client_status !== 'pending' && (
-                          <div className="mt-1">
-                            <span className={`inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${CLIENT_DECISION_COLORS[c.client_status]}`}
-                              title="The client's decision from their portal">
-                              Client: {clientDecisionLabel(c.client_status)}
-                            </span>
-                          </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {c.client_id ? (
+                          <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${CLIENT_DECISION_COLORS[c.client_status ?? 'pending']}`}
+                            title="The client's decision from their portal">
+                            {clientDecisionLabel(c.client_status)}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-300">—</span>
                         )}
                       </td>
                       <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
