@@ -13,16 +13,36 @@ export async function POST(req: NextRequest) {
   const { email } = await req.json()
   if (!email) return NextResponse.json({ error: 'Email required.' }, { status: 400 })
 
-  // Only registered client companies can request a code.
-  const { data: rows } = await admin()
-    .from('clients')
-    .select('id, name')
-    .ilike('email', email.trim())
-    .limit(1)
+  const db = admin()
+  const clean = email.trim()
 
-  if (!rows?.[0]) {
+  // 1. Already a registered client company?
+  const { data: rows } = await db.from('clients').select('id, name').ilike('email', clean).limit(1)
+  let client = rows?.[0] ?? null
+
+  // 2. Not yet — but did they submit a hiring requirement with this email?
+  //    If so, create their company account now (OTP goes to that email, so it's safe).
+  if (!client) {
+    const { data: hr } = await db
+      .from('hiring_requirements')
+      .select('company_name')
+      .ilike('contact_email', clean)
+      .order('created_at', { ascending: false })
+      .limit(1)
+
+    if (hr?.[0]) {
+      const { data: created } = await db
+        .from('clients')
+        .insert({ name: hr[0].company_name, email: clean.toLowerCase() })
+        .select('id, name')
+        .single()
+      client = created ?? null
+    }
+  }
+
+  if (!client) {
     return NextResponse.json(
-      { error: 'No company account found for this email. Please contact matchwork to get access.' },
+      { error: 'No company account found for this email. Use the email you submitted your hiring requirement with, or contact matchwork for access.' },
       { status: 404 },
     )
   }
