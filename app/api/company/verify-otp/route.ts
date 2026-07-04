@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { signOtp, signSession, COMPANY_COOKIE, COMPANY_OTP_COOKIE } from '@/lib/companyAuth'
+import { signOtp, signSession, COMPANY_COOKIE, COMPANY_OTP_COOKIE, COMPANY_SESSION_TTL_S } from '@/lib/companyAuth'
 
 const admin = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   const res = NextResponse.json({ success: true, name: client.name, hasPassword: !!client.password_hash })
   res.cookies.set(COMPANY_COOKIE, signSession(client.id), {
-    httpOnly: true, maxAge: 24 * 60 * 60, path: '/', sameSite: 'lax',
+    httpOnly: true, maxAge: COMPANY_SESSION_TTL_S, path: '/', sameSite: 'lax',
   })
   res.cookies.set(COMPANY_OTP_COOKIE, '', { httpOnly: true, maxAge: 0, path: '/' })
   return res

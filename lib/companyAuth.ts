@@ -33,7 +33,10 @@ export function signOtp(email: string, code: string, ts: number): string {
 }
 
 // ── Session token: base64url(payload).hmac ──────────────────────────────────
-export function signSession(clientId: string, ttlMs = 24 * 60 * 60 * 1000): string {
+// Sessions last 2 hours; after that the company must log in again.
+export const COMPANY_SESSION_TTL_S = 2 * 60 * 60
+
+export function signSession(clientId: string, ttlMs = COMPANY_SESSION_TTL_S * 1000): string {
   const payload = Buffer.from(JSON.stringify({ cid: clientId, exp: Date.now() + ttlMs })).toString('base64url')
   const sig = crypto.createHmac('sha256', SECRET).update(payload).digest('base64url')
   return `${payload}.${sig}`
