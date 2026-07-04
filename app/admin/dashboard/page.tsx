@@ -18,6 +18,15 @@ const STATUS_COLORS: Record<string, string> = {
 
 const STATUS_OPTIONS = ['new', 'screening', 'shortlisted', 'rejected', 'placed']
 
+// The client's own decision on a candidate (set by the company in their portal)
+const CLIENT_DECISION_COLORS: Record<string, string> = {
+  pending: 'bg-slate-100 text-slate-500',
+  shortlisted: 'bg-amber-100 text-amber-700',
+  selected: 'bg-emerald-100 text-emerald-700',
+  rejected: 'bg-red-100 text-red-700',
+}
+const clientDecisionLabel = (v?: string) => (v ?? 'pending').charAt(0).toUpperCase() + (v ?? 'pending').slice(1)
+
 const INITIAL_EMAIL = {
   toEmail: '',
   toName: '',
@@ -1041,6 +1050,14 @@ export default function AdminDashboard() {
                           <option value="">Unassigned</option>
                           {clients.map(cl => <option key={cl.id} value={cl.id}>{cl.name}</option>)}
                         </select>
+                        {c.client_id && c.client_status && c.client_status !== 'pending' && (
+                          <div className="mt-1">
+                            <span className={`inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${CLIENT_DECISION_COLORS[c.client_status]}`}
+                              title="The client's decision from their portal">
+                              Client: {clientDecisionLabel(c.client_status)}
+                            </span>
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                         <select
@@ -1452,9 +1469,17 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[selectedCandidate.status]}`}>
-                {selectedCandidate.status.charAt(0).toUpperCase() + selectedCandidate.status.slice(1)}
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[selectedCandidate.status]}`}>
+                  {selectedCandidate.status.charAt(0).toUpperCase() + selectedCandidate.status.slice(1)}
+                </span>
+                {selectedCandidate.client_id && (
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${CLIENT_DECISION_COLORS[selectedCandidate.client_status ?? 'pending']}`}
+                    title="The client's decision from their portal">
+                    Client: {clientDecisionLabel(selectedCandidate.client_status)}
+                  </span>
+                )}
+              </div>
 
               {[
                 { label: 'Email', value: selectedCandidate.email },

@@ -43,6 +43,7 @@ export type Candidate = {
   client_id: string | null
   notes: string | null
   status: 'new' | 'screening' | 'shortlisted' | 'rejected' | 'placed'
+  client_status: 'pending' | 'shortlisted' | 'selected' | 'rejected'
 }
 
 export type Client = {

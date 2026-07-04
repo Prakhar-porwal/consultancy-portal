@@ -47,7 +47,8 @@ create table if not exists public.candidates (
   resume_url             text,
   client_id              uuid references public.clients(id) on delete set null,
   notes                  text,
-  status                 text not null default 'new'
+  status                 text not null default 'new',
+  client_status          text not null default 'pending'  -- the client's own decision on this candidate
 );
 
 -- Jobs (admin posts these; candidates browse them)

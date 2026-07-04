@@ -7,14 +7,22 @@ import { useRouter } from 'next/navigation'
 import type { Candidate } from '@/lib/supabase'
 import Logo from '@/components/Logo'
 
+const DECISIONS: { value: Candidate['client_status']; label: string; pill: string; select: string }[] = [
+  { value: 'pending',     label: 'Pending',     pill: 'bg-slate-100 text-slate-600',    select: 'text-slate-600 border-slate-300' },
+  { value: 'shortlisted', label: 'Shortlisted', pill: 'bg-amber-100 text-amber-700',    select: 'text-amber-700 border-amber-300' },
+  { value: 'selected',    label: 'Selected',    pill: 'bg-emerald-100 text-emerald-700', select: 'text-emerald-700 border-emerald-300' },
+  { value: 'rejected',    label: 'Rejected',    pill: 'bg-red-100 text-red-700',        select: 'text-red-700 border-red-300' },
+]
+const decisionMeta = (v: string) => DECISIONS.find(d => d.value === v) ?? DECISIONS[0]
+
 export default function CompanyPortal() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [company, setCompany] = useState<{ name: string; hasPassword: boolean } | null>(null)
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [savingId, setSavingId] = useState<string | null>(null)
 
-  // set-password panel
   const [showPw, setShowPw] = useState(false)
   const [pw, setPw] = useState('')
   const [pw2, setPw2] = useState('')
@@ -38,6 +46,18 @@ export default function CompanyPortal() {
     router.push('/company/login')
   }
 
+  async function updateDecision(id: string, status: Candidate['client_status']) {
+    const prev = candidates
+    setCandidates(cs => cs.map(c => c.id === id ? { ...c, client_status: status } : c))  // optimistic
+    setSavingId(id)
+    const res = await fetch('/api/company/candidate-status', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ candidateId: id, status }),
+    })
+    setSavingId(null)
+    if (!res.ok) setCandidates(prev)  // revert on failure
+  }
+
   async function savePassword(e: React.FormEvent) {
     e.preventDefault()
     setPwMsg('')
@@ -45,8 +65,7 @@ export default function CompanyPortal() {
     if (pw !== pw2) { setPwMsg('Passwords do not match.'); return }
     setPwSaving(true)
     const res = await fetch('/api/company/set-password', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pw }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }),
     })
     const data = await res.json()
     setPwSaving(false)
@@ -58,6 +77,8 @@ export default function CompanyPortal() {
   if (loading) {
     return <main className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="text-slate-400 text-sm">Loading...</div></main>
   }
+
+  const counts = DECISIONS.map(d => ({ ...d, n: candidates.filter(c => c.client_status === d.value).length }))
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -72,17 +93,25 @@ export default function CompanyPortal() {
         </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">Your Shortlisted Candidates</h1>
-          <p className="text-slate-500 text-sm mt-1">
-            {candidates.length > 0
-              ? `${candidates.length} candidate${candidates.length > 1 ? 's' : ''} shared by matchwork for your open positions`
-              : 'No candidates have been shared with you yet.'}
-          </p>
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Your Shortlisted Candidates</h1>
+            <p className="text-slate-500 text-sm mt-1">
+              {candidates.length > 0
+                ? `${candidates.length} candidate${candidates.length > 1 ? 's' : ''} shared by matchwork · mark your decision on each`
+                : 'No candidates have been shared with you yet.'}
+            </p>
+          </div>
+          {candidates.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {counts.filter(c => c.n > 0).map(c => (
+                <span key={c.value} className={`text-xs font-medium px-2.5 py-1 rounded-full ${c.pill}`}>{c.n} {c.label}</span>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Set-password nudge */}
         {company && !company.hasPassword && (
           <div className="mb-6 bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
             {!showPw ? (
@@ -93,16 +122,12 @@ export default function CompanyPortal() {
             ) : (
               <form onSubmit={savePassword} className="space-y-3">
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="New password (min 6 chars)"
-                    className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
-                  <input type="password" value={pw2} onChange={e => setPw2(e.target.value)} placeholder="Confirm password"
-                    className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
+                  <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="New password (min 6 chars)" className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
+                  <input type="password" value={pw2} onChange={e => setPw2(e.target.value)} placeholder="Confirm password" className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
                 </div>
                 {pwMsg && <p className="text-xs text-red-600">{pwMsg}</p>}
                 <div className="flex gap-2">
-                  <button type="submit" disabled={pwSaving} className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-300 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
-                    {pwSaving ? 'Saving...' : 'Save password'}
-                  </button>
+                  <button type="submit" disabled={pwSaving} className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-300 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">{pwSaving ? 'Saving...' : 'Save password'}</button>
                   <button type="button" onClick={() => { setShowPw(false); setPwMsg('') }} className="text-sm text-slate-500 hover:text-slate-700 px-2">Cancel</button>
                 </div>
               </form>
@@ -121,74 +146,105 @@ export default function CompanyPortal() {
             <p className="text-slate-400 text-sm mt-1">matchwork will share shortlisted profiles here as they&apos;re ready.</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {candidates.map(c => (
-              <div key={c.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                <button onClick={() => setExpanded(expanded === c.id ? null : c.id)} className="w-full text-left p-6 hover:bg-slate-50 transition-colors">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h2 className="text-lg font-semibold text-slate-900">{c.full_name}</h2>
-                        {c.is_immediate_joiner && <span className="bg-emerald-50 text-emerald-700 text-xs font-medium px-2 py-0.5 rounded-full">Immediate joiner</span>}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-slate-500">
-                        {c.current_company && <span>{c.current_company}</span>}
-                        <span>· {c.total_experience} exp</span>
-                        <span>· {c.current_location}</span>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-indigo-600 font-bold text-sm">₹{c.expected_ctc} LPA</div>
-                      <div className="text-xs text-slate-400">expected</div>
-                    </div>
-                  </div>
-                </button>
-
-                {expanded === c.id && (
-                  <div className="px-6 pb-6 border-t border-slate-100 pt-4 space-y-4">
-                    <div className="grid sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                      <Detail label="Phone"><a href={`tel:${c.phone}`} className="text-indigo-600 hover:underline">{c.phone}</a>{c.alt_phone ? <span className="text-slate-400"> / {c.alt_phone}</span> : null}</Detail>
-                      <Detail label="Email"><a href={`mailto:${c.email}`} className="text-indigo-600 hover:underline break-all">{c.email}</a></Detail>
-                      {c.linkedin_url && <Detail label="LinkedIn"><a href={c.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline break-all">View profile</a></Detail>}
-                      <Detail label="Current CTC">₹{c.current_ctc} LPA</Detail>
-                      <Detail label="Notice period">{c.notice_period}</Detail>
-                      <Detail label="Ready to relocate">{c.ready_to_relocate ? 'Yes' : 'No'}</Detail>
-                      {(c.education_type || c.education_institution) && <Detail label="Education">{[c.education_type, c.education_institution].filter(Boolean).join(' · ')}</Detail>}
-                      {c.preferred_location && <Detail label="Preferred location">{c.preferred_location}</Detail>}
-                    </div>
-
-                    {c.skills && (
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Skills</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {c.skills.split(',').map(s => s.trim()).filter(Boolean).map(s => (
-                            <span key={s} className="bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full text-xs font-medium">{s}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {c.resume_url && (
-                      <a href={c.resume_url} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl px-4 py-2 text-sm font-semibold shadow-sm shadow-indigo-500/30 transition-colors">
-                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Download Resume
-                      </a>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    {['Candidate', 'Experience', 'Expected CTC', 'Notice', 'Your Decision', ''].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {candidates.map(c => (
+                    <FragmentRow key={c.id} c={c} expanded={expanded === c.id} saving={savingId === c.id}
+                      onToggle={() => setExpanded(expanded === c.id ? null : c.id)}
+                      onDecision={(s) => updateDecision(c.id, s)} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-400">
+              {candidates.length} candidate{candidates.length !== 1 ? 's' : ''} · your decisions are shared with matchwork
+            </div>
           </div>
         )}
 
-        <p className="text-center text-xs text-slate-400 mt-8">
-          Candidates shared exclusively for your consideration by matchwork.
-        </p>
+        <p className="text-center text-xs text-slate-400 mt-8">Candidates shared exclusively for your consideration by matchwork.</p>
       </div>
     </main>
+  )
+}
+
+function FragmentRow({ c, expanded, saving, onToggle, onDecision }: {
+  c: Candidate; expanded: boolean; saving: boolean; onToggle: () => void; onDecision: (s: Candidate['client_status']) => void
+}) {
+  const meta = decisionMeta(c.client_status)
+  return (
+    <>
+      <tr className="hover:bg-slate-50">
+        <td className="px-4 py-3">
+          <button onClick={onToggle} className="text-left">
+            <div className="font-semibold text-slate-900 flex items-center gap-2">
+              {c.full_name}
+              {c.is_immediate_joiner && <span className="bg-emerald-50 text-emerald-700 text-[10px] font-medium px-1.5 py-0.5 rounded-full">Immediate</span>}
+            </div>
+            <div className="text-xs text-slate-400 mt-0.5">{[c.current_company, c.current_location].filter(Boolean).join(' · ')}</div>
+          </button>
+        </td>
+        <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{c.total_experience}</td>
+        <td className="px-4 py-3 text-slate-800 font-medium whitespace-nowrap">₹{c.expected_ctc} LPA</td>
+        <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{c.notice_period}</td>
+        <td className="px-4 py-3">
+          <select
+            value={c.client_status}
+            onChange={e => onDecision(e.target.value as Candidate['client_status'])}
+            disabled={saving}
+            className={`border rounded-lg px-2.5 py-1.5 text-xs font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer ${meta.select}`}
+          >
+            {DECISIONS.map(d => <option key={d.value} value={d.value} className="text-slate-700">{d.label}</option>)}
+          </select>
+        </td>
+        <td className="px-4 py-3 text-right">
+          <button onClick={onToggle} className="text-indigo-600 hover:text-indigo-800 text-xs font-medium whitespace-nowrap inline-flex items-center gap-1">
+            Details
+            <svg className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+          </button>
+        </td>
+      </tr>
+      {expanded && (
+        <tr className="bg-slate-50/60">
+          <td colSpan={6} className="px-4 pb-5 pt-1">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3">
+              <Detail label="Phone"><a href={`tel:${c.phone}`} className="text-indigo-600 hover:underline">{c.phone}</a>{c.alt_phone ? <span className="text-slate-400"> / {c.alt_phone}</span> : null}</Detail>
+              <Detail label="Email"><a href={`mailto:${c.email}`} className="text-indigo-600 hover:underline break-all">{c.email}</a></Detail>
+              {c.linkedin_url && <Detail label="LinkedIn"><a href={c.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">View profile</a></Detail>}
+              <Detail label="Current CTC">₹{c.current_ctc} LPA</Detail>
+              <Detail label="Ready to relocate">{c.ready_to_relocate ? 'Yes' : 'No'}</Detail>
+              {(c.education_type || c.education_institution) && <Detail label="Education">{[c.education_type, c.education_institution].filter(Boolean).join(' · ')}</Detail>}
+              {c.preferred_location && <Detail label="Preferred location">{c.preferred_location}</Detail>}
+            </div>
+            {c.skills && (
+              <div className="mt-3">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Skills</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {c.skills.split(',').map(s => s.trim()).filter(Boolean).map(s => (
+                    <span key={s} className="bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full text-xs font-medium">{s}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {c.resume_url && (
+              <a href={c.resume_url} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl px-4 py-2 text-sm font-semibold shadow-sm shadow-indigo-500/30 transition-colors">
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Download Resume
+              </a>
+            )}
+          </td>
+        </tr>
+      )}
+    </>
   )
 }
 
