@@ -47,6 +47,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'candidates' | 'jobs' | 'clients' | 'logs' | 'requirements'>('candidates')
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [clients, setClients] = useState<Client[]>([])
+  const [authed, setAuthed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selectedClient, setSelectedClient] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -93,9 +94,12 @@ export default function AdminDashboard() {
   const [applications, setApplications] = useState<{ candidate_email: string; job_id: string }[]>([])
   const [jobsMap, setJobsMap] = useState<Record<string, string>>({})
 
+  // Gate: confirm an admin session before rendering or loading any data.
   const checkAuth = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) router.push('/admin/login')
+    if (!session) { router.push('/admin/login'); return false }
+    setAuthed(true)
+    return true
   }, [router])
 
   // Attaches the admin's Supabase access token so protected API routes
@@ -133,8 +137,8 @@ export default function AdminDashboard() {
   }, [])
 
   useEffect(() => {
-    checkAuth()
-    fetchData()
+    // Only load data once the session is confirmed — never for a guest.
+    checkAuth().then(ok => { if (ok) fetchData() })
   }, [checkAuth, fetchData])
 
   const fetchLogs = useCallback(async () => {
@@ -447,6 +451,15 @@ export default function AdminDashboard() {
       </button>
     </div>
   )
+
+  // Don't render the dashboard (or any of its data UI) until the session is confirmed.
+  if (!authed) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-slate-400 text-sm">Checking access…</div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
