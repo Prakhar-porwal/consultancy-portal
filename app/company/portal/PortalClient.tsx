@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Candidate } from '@/lib/supabase'
 import Logo from '@/components/Logo'
+import PasswordInput from '@/components/PasswordInput'
 
 const DECISIONS: { value: Candidate['client_status']; label: string; pill: string; select: string }[] = [
   { value: 'pending',     label: 'Pending',     pill: 'bg-slate-100 text-slate-600',    select: 'text-slate-600 border-slate-300' },
@@ -120,8 +121,8 @@ export default function PortalClient() {
             ) : (
               <form onSubmit={savePassword} className="space-y-3">
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="New password (min 6 chars)" className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
-                  <input type="password" value={pw2} onChange={e => setPw2(e.target.value)} placeholder="Confirm password" className="border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
+                  <PasswordInput value={pw} onChange={e => setPw(e.target.value)} placeholder="New password (min 6 chars)" className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
+                  <PasswordInput value={pw2} onChange={e => setPw2(e.target.value)} placeholder="Confirm password" className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
                 </div>
                 {pwMsg && <p className="text-xs text-red-600">{pwMsg}</p>}
                 <div className="flex gap-2">

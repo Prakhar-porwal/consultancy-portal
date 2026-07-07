@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Logo from '@/components/Logo'
+import PasswordInput from '@/components/PasswordInput'
 
 type Mode = 'password' | 'otp-email' | 'otp-code'
 
@@ -112,7 +113,7 @@ export default function CompanyLogin() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+              <PasswordInput value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"
                 required className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
             {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}

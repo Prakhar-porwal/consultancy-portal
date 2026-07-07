@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function AdminLogin() {
   const router = useRouter()
@@ -56,8 +57,7 @@ export default function AdminLogin() {
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-            <input
-              type="password"
+            <PasswordInput
               required
               value={password}
               onChange={e => setPassword(e.target.value)}
